@@ -45,7 +45,7 @@ const styles = StyleSheet.create({
         padding: 10
     },
     image: {
-      marginTop: 100, 
+      marginTop: 70, 
       alignSelf:'center', 
     },
     text: {

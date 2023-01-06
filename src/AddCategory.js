@@ -1,12 +1,24 @@
 import { Text, Box, Image, Button } from 'native-base';
-import { StyleSheet, TextInput } from 'react-native';
-import  React, { useState } from 'react';
+import { StyleSheet, TextInput, FlatList, View } from 'react-native';
+import  React, { useState, useEffect } from 'react';
+import { useQuery } from 'react-query';
+import { API } from './config/api';
 
 const AddCategory = ({navigation}) => {
     const [text, setText] = useState('');
 
+    const [category, setCategory] = useState()
+    console.log("Category coy", category)
+
+    useEffect(() => {
+        (async () => {
+            const response = await API.get(`/category`);
+            setCategory(response.data);
+        })()
+      }, [])
+
     const handleSubmit = () => {
-        alert('Hello')
+        alert("OK")
     }
     return (
         <>
@@ -16,9 +28,14 @@ const AddCategory = ({navigation}) => {
                 <Button style={styles.button}><Text style={styles.text} onPress={handleSubmit}>Add category</Text></Button>
                 <Text style={styles.title}>List Category</Text>
                 <Box style={styles.listCategory}>
-                    <Text style={styles.studyStatus}>Study</Text>
-                    <Text style={styles.studyStatus}>Home Work</Text>
-                    <Text style={styles.studyStatus}>Workout</Text>
+                    {/* looping categories */}
+                    <FlatList data={category ? category : null} renderItem={({ item }) => {
+                    return (
+                        <Box>
+                            <Text style={styles.studyStatus}>{item.name}</Text>
+                        </Box>
+                    )
+                    }} keyExtractor={(item, index) => index} />
                 </Box>
             </Box>
             <Box style={styles.navbar}>
@@ -92,13 +109,15 @@ const styles = StyleSheet.create({
         paddingVertical: 5,
         paddingHorizontal: 5,
         backgroundColor: '#81C8FF',
-        color: 'white',
+        color: 'black',
         textAlign: 'center',
         fontSize:11,
         fontWeight: '800',
         borderRadius: 5,
         marginBottom: 10,
         marginRight:10,
+        display:'flex',
+        flexDirection: 'row',
     },
     navbar: {
         position:'absolute',

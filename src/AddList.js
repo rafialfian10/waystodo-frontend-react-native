@@ -1,11 +1,12 @@
 
-import { Text, Box, Image, Button, TextArea, Select } from 'native-base';
+import { Text, Box, Image, Button, TextArea, Select, CheckIcon } from 'native-base';
 import { StyleSheet, TextInput } from 'react-native';
 import  React, { useState } from 'react';
 
 const AddList = ({navigation}) => {
     const [text, setText] = useState('');
-    const [service, setService] = React.useState("");
+
+    const [value, setValue] = React.useState("");
 
     const handleSubmit = () => {
         alert('Hello')
@@ -15,14 +16,13 @@ const AddList = ({navigation}) => {
             <Box>
                 <Text style={styles.title}>Add List</Text>
                 <TextInput style={styles.textInput} placeholder="Name" onChangeText={newText => setText(newText)}defaultValue={text}/>
-                <TextInput style={styles.textInput} placeholder="Category" onChangeText={newText => setText(newText)}defaultValue={text}/>
-                {/* <Select selectedValue={service} minWidth="200" accessibilityLabel="Choose Service" placeholder="Choose Service" _selectedItem={{bg: "teal.600", endIcon: <CheckIcon size="5" />}} mt={1} onValueChange={itemValue => setService(itemValue)}>
-                    <Select.Item label="UX Research" value="ux" />
-                    <Select.Item label="Web Development" value="web" />
-                    <Select.Item label="Cross Platform Development" value="cross" />
-                    <Select.Item label="UI Designing" value="ui" />
-                    <Select.Item label="Backend Development" value="backend" />
-                </Select> */}
+                <Box style={styles.selectInput}>
+                    <Select style={{marginLeft:7, fontSize:14, height:45}} selectedValue={value} placeholder="Category" onValueChange={itemValue => {setValue(itemValue);}} _selectedItem={{endIcon: <CheckIcon size={5} />}}>
+                        <Select.Item label="Study" value="study"/>
+                        <Select.Item label="Home Work" value="homework"/>
+                        <Select.Item label="Workout" value="workout"/>
+                    </Select>
+                </Box>
                 <TextInput style={styles.textInput} placeholder="Choose Date" onChangeText={newText => setText(newText)}defaultValue={text}/>
                 <Box style={styles.textArea}>
                     <TextArea style={{fontSize:15, paddingLeft: 20}} h={40} placeholder="Description" w="100%" />
@@ -73,6 +73,15 @@ const styles = StyleSheet.create({
         paddingLeft: 20, 
         marginBottom: 10,
         justifyContent: 'center',
+    },
+    selectInput: {
+        alignSelf: 'center',
+        width: '80%', 
+        height: 50, 
+        backgroundColor: '#dcdcdc', 
+        borderRadius: 5, 
+        marginBottom: 10,
+        color: '#999999',
     },
     textArea: {
         width: '80%',

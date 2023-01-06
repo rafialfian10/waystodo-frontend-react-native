@@ -8,11 +8,11 @@ const DetailList = ({navigation}) => {
             <ScrollView>
                 <Box style={styles.contentDetail}>
                     <Text style={styles.title}>Study - Golang</Text>
-                    <Text style={styles.desc}>Learn Golang to improve fundamentals and familiarize with coding.</Text>
-                    <Text style={styles.desc}>Advantages of Go Go has advantages over other languages, including:</Text>
-                    <Text style={styles.desc}>Supports concurrency at the language level with fairly easy application</Text>
-                    <Text style={styles.desc}>Supports data processing with multiple processors at the same time (parallel processing)</Text>
-                    <Text> Have a garbage collector The compilation process is very fast It's not a hierarchical programming language and it's not strict OOP, giving developers the freedom to how to write code.
+                    <Text>Learn Golang to improve fundamentals and familiarize with coding.</Text>
+                    <Text>Advantages of Go Go has advantages over other languages, including:</Text>
+                    <Text>Supports concurrency at the language level with fairly easy application</Text>
+                    <Text>Supports data processing with multiple processors at the same time (parallel processing)</Text>
+                    <Text>Have a garbage collector The compilation process is very fast It's not a hierarchical programming language and it's not strict OOP, giving developers the freedom to how to write code.
                     </Text>
                     <Text>Listing Material :</Text>
                     <Text>Installation</Text>
@@ -66,9 +66,6 @@ const styles = StyleSheet.create({
         fontWeight: 'bold', 
         marginTop: 50,
         marginBottom:20,
-    },
-    desc: {
-        fontSize: 12,
     },
     navbar: {
         position:'absolute',

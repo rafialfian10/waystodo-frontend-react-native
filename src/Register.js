@@ -3,16 +3,27 @@ import React, { useState } from 'react';
 import { StyleSheet, TextInput, TouchableOpacity } from 'react-native';
 
 const Register = ({navigation}) => {
+    const [text, setText] = useState()
+    const [form, setForm] = useState({
+      name: "",
+      email: "",
+      password: "",
+    });
 
-    const [text, setText] = useState('');
+    const handleChange = (e) => {
+      setForm({
+      ...form,
+      [e.target.name]: e.target.value,
+      })
+  };
 
     return (
         <Box>
             <Image source={require('../assets/login.png')} style={styles.imageLogin} alt=""/>
             <Text style={styles.title}>Register</Text>
-            <TextInput style={styles.textInput} placeholder="Email" onChangeText={newText => setText(newText)}defaultValue={text}/>
-            <TextInput style={styles.textInput} placeholder="Name" onChangeText={newText => setText(newText)}defaultValue={text}/>
-            <TextInput style={styles.textInput} placeholder="Password" onChangeText={newText => setText(newText)}defaultValue={text}/>
+            <TextInput style={styles.textInput} placeholder="Email" onChange={handleChange} onChangeText={newText => setText(newText)}defaultValue={text}/>
+            <TextInput style={styles.textInput} placeholder="Name" onChange={handleChange} onChangeText={newText => setText(newText)}defaultValue={text}/>
+            <TextInput style={styles.textInput} placeholder="Password" onChange={handleChange} onChangeText={newText => setText(newText)}defaultValue={text}/>
             <TouchableOpacity style={styles.button}><Text style={styles.text}>Register</Text></TouchableOpacity>
             <Text style={styles.textRegister}>Joined us before?<Text onPress={() => navigation.navigate("Login")} style={styles.linkRegister}> Login</Text></Text>
         </Box>

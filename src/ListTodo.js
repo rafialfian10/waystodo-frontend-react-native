@@ -1,11 +1,48 @@
-import { Text, Box, Image, Button } from 'native-base';
-import { StyleSheet, TextInput, SafeAreaView, ScrollView } from 'react-native';
-// import DatePicker from 'react-native-datepicker';
-import  React, { useState } from 'react';
+import { Text, Box, Image, Button, Select } from 'native-base';
+import { StyleSheet, TextInput, SafeAreaView, ScrollView, FlatList } from 'react-native';
+import { DateTimePickerAndroid } from '@react-native-community/datetimepicker';
+import  React, { useState, useEffect } from 'react';
 
 const ListTodo = ({navigation}) => {
     const [text, setText] = useState('');
-    // const [date, setDate] = useState(new Date(1598051730000));
+
+    // state select category
+    const [course, setCourse] = useState()
+
+    useEffect(() => {
+        (async () => {
+            const response = await API.get(`/course`);
+            setCategory(response.data);
+        })()
+    }, [])
+
+     // state select status
+     const [status, setStatus] = React.useState("");
+
+    // state date
+    const [date, setDate] = useState(new Date(1598051730000));
+
+    const onChange = (event, selectedDate) => {
+      const currentDate = selectedDate;
+      setDate(currentDate);
+    };
+  
+    const showMode = (currentMode) => {
+      DateTimePickerAndroid.open({
+        value: date,
+        onChange,
+        mode: currentMode,
+        is24Hour: true,
+      });
+    };
+  
+    const showDatepicker = () => {
+      showMode('date');
+    };
+  
+    const showTimepicker = () => {
+      showMode('time');
+    };
 
     const handleDetailList = () => {
         navigation.navigate("DetailList")
@@ -14,41 +51,6 @@ const ListTodo = ({navigation}) => {
         <SafeAreaView>
             <ScrollView>
                 <Box style={styles.container}>
-                {/* <DatePicker
-                style={styles.datePickerStyle}
-                date={date}
-                mode="date"
-                placeholder="select date"
-                format="DD/MM/YYYY"
-                minDate="01-01-1900"
-                maxDate="01-01-2000"
-                confirmBtnText="Confirm"
-                cancelBtnText="Cancel"
-                customStyles={{
-                    dateIcon: {
-                    position: 'absolute',
-                    right: -5,
-                    top: 4,
-                    marginLeft: 0,
-                    },
-                    dateInput: {
-                    borderColor : "gray",
-                    alignItems: "flex-start",
-                    borderWidth: 0,
-                    borderBottomWidth: 1,
-                    },
-                    placeholderText: {
-                    fontSize: 17,
-                    color: "gray"
-                    },
-                    dateText: {
-                    fontSize: 17,
-                    }
-                }}
-                onDateChange={(date) => {
-                    setDate(date);
-                }}
-                /> */}
                     {/* Content profile */}
                     <Box style={styles.contentProfile1}>
                         <Box style={styles.contentProfile2}>
@@ -61,9 +63,40 @@ const ListTodo = ({navigation}) => {
                     {/* Content input */}
                     <TextInput style={styles.textInput1} placeholder="Search List....." onChangeText={newText => setText(newText)}defaultValue={text}/>
                     <Box style={styles.contentInput}>
-                        <TextInput style={styles.textInput2} placeholder="Choose Date" onChangeText={newText => setText(newText)}defaultValue={text}/>
-                        <TextInput style={styles.textInput2} placeholder="Category" onChangeText={newText => setText(newText)}defaultValue={text}/>
-                        <TextInput style={styles.textInput2} placeholder="Status" onChangeText={newText => setText(newText)}defaultValue={text}/>
+                        {/* date */}
+                        <Box style={styles.selectInput}>
+                            <Button style={{width:'100%', backgroundColor:'transparent', height:50}} onPress={showDatepicker}>
+                                <Box style={{width:'100%', display:'flex', flexDirection:'row', justifyContent: 'space-around', alignItems:'center'}}>
+                                    {!date ===  "" ? <Text style={{fontSize:11, marginRight:20, color:'grey'}}>{date.toLocaleDateString()}</Text> : <Text style={{fontSize:11, marginRight:20, color:'grey'}}>Date</Text>}
+                                    <Image style={{width: 20, height: 20}} source={require('../assets/calender.png')} alt=""/>
+                                </Box>
+                            </Button>
+                        </Box>
+                        
+                        {/* category */}
+                        <Box style={styles.selectInput}>
+                            <Select style={{fontSize:11, height:45}} selectedValue={category} placeholder="Category" onValueChange={itemValue => {setCategory(itemValue);}}>
+                                 {/* looping course */}
+                                {/* <FlatList data={category ? category : null} renderItem={({ item }) => {
+                                    return (
+                                        <Box>
+                                            <Text style={styles.studyStatus}>{item.name}</Text>
+                                        </Box>
+                                    )
+                                }} keyExtractor={(item, index) => index} /> */}
+                                <Select.Item label="Study" value="study" />
+                                <Select.Item label="Home Work" value="homework" />
+                                <Select.Item label="Workout" value="workout" />
+                            </Select>
+                        </Box>
+
+                        {/* status */}
+                        <Box style={styles.selectInput}>
+                            <Select style={{fontSize:11, height:45}} selectedValue={status} placeholder="Status" onValueChange={itemValue => {setStatus(itemValue);}}>
+                                <Select.Item label="Checked" value="checked" />
+                                <Select.Item label="Unchecked" value="unchecked" />
+                            </Select>
+                        </Box>
                     </Box>
 
                     {/* Content study 1 */}
@@ -133,7 +166,8 @@ const ListTodo = ({navigation}) => {
                             <Image style={styles.studyImageStatus} source={require('../assets/ellipse.png')} alt=""/>
                         </Box>
                     </Box>
-                </Box>                    
+                </Box>         
+                         
             </ScrollView>
             <Box style={styles.navbar}>
                 <Button onPress={() => navigation.navigate("ListTodo")} style={styles.navbarButton}>
@@ -205,11 +239,11 @@ const styles = StyleSheet.create({
         borderRadius: 5, 
         alignSelf:'center',
         marginBottom: 10,
-        paddingLeft:10,
-        fontSize: 12,
+        paddingLeft: 10,
+        fontSize: 11,
     },
     contentInput: {
-        width: 350,
+        width: '95%',
         alignSelf:'center',
         display:'flex',
         flexDirection:'row',
@@ -217,14 +251,23 @@ const styles = StyleSheet.create({
         marginBottom: 40,
     },
     textInput2: {
-        width: 100, 
+        width: '32%', 
         height: 50, 
         backgroundColor: '#dcdcdc', 
         borderRadius: 5, 
         alignSelf:'center',
         marginBottom: 10,
-        fontSize: 12,
+        fontSize: 11,
         textAlign: 'center',
+    },
+    selectInput: {
+        alignSelf: 'center',
+        width: '32%', 
+        height: 50, 
+        backgroundColor: '#dcdcdc', 
+        borderRadius: 5, 
+        marginBottom: 10,
+        color: '#999999',
     },
     // contentStudy: {
     //     width: 350,
