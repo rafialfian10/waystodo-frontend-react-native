@@ -1,32 +1,103 @@
-import { Text, Box, Image} from 'native-base';
+import { Text, Box, Image, Button, NativeBaseProvider} from 'native-base';
 import React, { useState } from 'react';
 import { StyleSheet, TextInput, TouchableOpacity } from 'react-native';
+import { API } from './config/api';
 
 const Register = ({navigation}) => {
-    const [text, setText] = useState()
+    
+  // state form
     const [form, setForm] = useState({
-      name: "",
+      firstName: "",
       email: "",
       password: "",
     });
 
-    const handleChange = (e) => {
+    // state error
+    const [error, setError] = useState({
+      firstName: "",
+      email: "",
+      password: "",
+    })
+
+    // handle change
+    const handleChange = (name, value) => {
       setForm({
       ...form,
-      [e.target.name]: e.target.value,
+      [name]: value,
       })
-  };
+    };
+
+    // handle submit category
+    const handleSubmit =  async () => {
+      try {
+          // konfigurasi file
+          const config = {
+              headers: {
+                'Content-Type': 'application/json',
+              },
+          };
+
+          const messageError = {
+              firstName: "",
+              email: "",
+              password: "",
+          }
+
+          // validasi form name
+          if (form.firstName === "") {
+              messageError.firstName = "Name must be filled out";
+          } else {
+              messageError.firstName = ""
+          }
+
+          // validasi form email
+          if (form.email === "") {
+            messageError.email = "Email must be filled out";
+          } else {
+              messageError.email = ""
+          }
+
+          // validasi form password
+          if (form.password === "") {
+            messageError.password = "Password must be filled out";
+          } else {
+              messageError.password = ""
+          }
+
+          if (messageError.firstName === "" && messageError.email === "" && messageError.password === "") {
+              const body = JSON.stringify(form)
+
+               // Insert trip data
+              const response = await API.post('auth/register', body, config);
+              // refetchCategories()
+              alert("Register successfully")
+              navigation.navigate('Login'); 
+              } else {
+                  setError(messageError)
+              }
+        } catch (err) {
+            console.log(err)
+        }
+    }
 
     return (
+      <NativeBaseProvider>
         <Box>
             <Image source={require('../assets/login.png')} style={styles.imageLogin} alt=""/>
             <Text style={styles.title}>Register</Text>
-            <TextInput style={styles.textInput} placeholder="Email" onChange={handleChange} onChangeText={newText => setText(newText)}defaultValue={text}/>
-            <TextInput style={styles.textInput} placeholder="Name" onChange={handleChange} onChangeText={newText => setText(newText)}defaultValue={text}/>
-            <TextInput style={styles.textInput} placeholder="Password" onChange={handleChange} onChangeText={newText => setText(newText)}defaultValue={text}/>
-            <TouchableOpacity style={styles.button}><Text style={styles.text}>Register</Text></TouchableOpacity>
+            <TextInput style={styles.textInput} placeholder="Email" onChangeText={(value) => handleChange("email", value)} value={form.email}/>
+            {error.email && <Text style={{width:'75%', alignSelf:'center', color:'red'}}>{error.email}</Text>}
+
+            <TextInput style={styles.textInput} placeholder="Name" onChangeText={(value) => handleChange("firstName", value)} value={form.firstName}/>
+            {error.firstName && <Text style={{width:'75%', alignSelf:'center', color:'red'}}>{error.firstName}</Text>}
+
+            <TextInput style={styles.textInput} secureTextEntry={true} placeholder="Password" onChangeText={(value) => handleChange("password", value)} value={form.password}/>
+            {error.password && <Text style={{width:'75%', alignSelf:'center', color:'red'}}>{error.password}</Text>}
+
+            <Button onPress={handleSubmit} style={styles.button}><Text style={styles.text}>Register</Text></Button>
             <Text style={styles.textRegister}>Joined us before?<Text onPress={() => navigation.navigate("Login")} style={styles.linkRegister}> Login</Text></Text>
         </Box>
+      </NativeBaseProvider>
     )
 }
 
@@ -60,7 +131,7 @@ const styles = StyleSheet.create({
         backgroundColor: '#dcdcdc', 
         borderRadius: 5, 
         paddingLeft: 20, 
-        marginBottom: 10,
+        marginTop: 10,
         justifyContent: 'center',
     },
     button: {

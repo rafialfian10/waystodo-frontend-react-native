@@ -67,24 +67,6 @@ const styles = StyleSheet.create({
         marginTop: 50,
         marginBottom:20,
     },
-    navbar: {
-        position:'absolute',
-        width: '100%',
-        height: 60,
-        bottom: 0,
-        display: 'flex',
-        flexDirection: 'row',
-        alignItems: 'center',
-        justifyContent: 'space-evenly',
-        backgroundColor: '#FFFFFF',
-    },
-    navbarButton: {
-        backgroundColor:'transparent',
-    },
-    navbarImage: {
-        width: 30,
-        height: 30,
-    },
 })
 
 export default DetailList

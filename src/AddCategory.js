@@ -1,55 +1,117 @@
-import { Text, Box, Image, Button } from 'native-base';
-import { StyleSheet, TextInput, FlatList, View } from 'react-native';
-import  React, { useState, useEffect } from 'react';
+import { Text, Box, Button, HStack } from 'native-base';
+import { StyleSheet, TextInput, SafeAreaView, ScrollView, } from 'react-native';
+import  React, { useState } from 'react';
 import { useQuery } from 'react-query';
+
+// api
 import { API } from './config/api';
 
 const AddCategory = ({navigation}) => {
-    const [text, setText] = useState('');
 
+    // state category for get query data
     const [category, setCategory] = useState()
-    console.log("Category coy", category)
 
-    useEffect(() => {
-        (async () => {
-            const response = await API.get(`/category`);
-            setCategory(response.data);
-        })()
-      }, [])
+    // state error
+    const [error, setError] = useState({
+        name: '',
+    })
 
-    const handleSubmit = () => {
-        alert("OK")
+    // get countries
+    let { data: categories, refetch: refetchCategories} = useQuery('categoriesCaches', async () => {
+        const response = await API.get(`/category`);
+        return response.data
+    });
+
+    // state form for post data
+    const [form, setForm] = useState({
+        name: "",
+    });
+
+    // handle change
+    const handleChange = (name, value) => {
+        setForm({...form,[name]: value
+        })
     }
+
+    // handle submit category
+    const handleSubmit =  async () => {
+        try {
+            // konfigurasi file
+            const config = {
+                headers: {
+                  'Content-type': 'application/json',
+                  
+                },
+            };
+
+            const messageError = {
+                name: '',
+            }
+
+            // validasi form title
+            if (form.name === "") {
+                messageError.name = "Name must be filled out";
+            } else {
+                messageError.name = ""
+            }
+
+            if (messageError.name === "") {
+                const body = JSON.stringify(form)
+                 // Insert trip data
+                const response = await API.post('/category', body, config);
+                refetchCategories()
+                alert("Category has been added")
+                navigation.navigate('AddCategory'); 
+                } else {
+                    setError(messageError)
+                }
+          } catch (err) {
+              console.log(err)
+          }
+      }
+
+    const color = ['#81C8FF', 'FF8181', 'FFB681', '#FF5555;'];
     return (
-        <>
+        <SafeAreaView>
+            <ScrollView>
             <Box>
                 <Text style={styles.title}>Add Category</Text>
-                <TextInput style={styles.textInput} placeholder="Name" onChangeText={newText => setText(newText)}defaultValue={text}/>
-                <Button style={styles.button}><Text style={styles.text} onPress={handleSubmit}>Add category</Text></Button>
+                <TextInput style={styles.textInput} placeholder="Name" onChangeText={(value) => handleChange("name", value)} value={form.name}/>
+                {error.name && <Text style={{width:'75%', alignSelf:'center', color:'red'}}>{error.name}</Text>}
+                <Button style={styles.button} onPress={handleSubmit}><Text style={styles.text}>Add category</Text></Button>
                 <Text style={styles.title}>List Category</Text>
-                <Box style={styles.listCategory}>
-                    {/* looping categories */}
-                    <FlatList data={category ? category : null} renderItem={({ item }) => {
-                    return (
-                        <Box>
-                            <Text style={styles.studyStatus}>{item.name}</Text>
-                        </Box>
-                    )
-                    }} keyExtractor={(item, index) => index} />
-                </Box>
+            
+                {/* looping categories */}
+                <HStack style={styles.listCategory}>
+                    {categories?.map((item, i) => {
+                        {if(item.name === "study") {
+                            return (
+                                <Box key={i} style={{height: 30, width: '20%', marginRight: 15, marginBottom: 10, borderRadius: 5, backgroundColor: '#81C8FF',}}>
+                                    <Text style={styles.studyStatus}>{item.name}</Text>
+                                </Box>
+                            )} else if(item.name === "home work") {
+                                return (
+                                    <Box key={i} style={{height: 30, width: '20%', marginRight: 15, marginBottom: 10, borderRadius: 5, backgroundColor: '#FF8181'}}>
+                                        <Text style={styles.studyStatus}>{item.name}</Text>
+                                    </Box>
+                            )} else if(item.name === "workout"){
+                                return (
+                                    <Box key={i} style={{height: 30, width: '20%', marginRight: 15, marginBottom: 10, borderRadius: 5,  backgroundColor: '#FFB681'}}>
+                                        <Text style={styles.studyStatus}>{item.name}</Text>
+                                    </Box>
+                                    )
+                            } else {
+                                return (
+                                    <Box key={i} style={{height: 30, width: '20%', marginRight: 15, marginBottom: 10, borderRadius: 5,  backgroundColor: '#D9D9D9'}}>
+                                        <Text style={styles.studyStatus}>{item.name}</Text>
+                                    </Box>
+                            )
+                        }}
+                    })}
+                </HStack>
             </Box>
-            <Box style={styles.navbar}>
-                <Button onPress={() => navigation.navigate("ListTodo")} style={styles.navbarButton}>
-                <Image style={styles.navbarImage} source={require('../assets/white-clipboard-list.png')} alt=""/>
-                </Button>
-                <Button onPress={() => navigation.navigate("AddList")} style={styles.navbarButton}>
-                    <Image style={styles.navbarImage} source={require('../assets/white-task-list-add.png')} alt=""/>
-                </Button>
-                <Button onPress={() => navigation.navigate("AddCategory")} style={styles.navbarButton}>
-                    <Image style={styles.navbarImage} source={require('../assets/red-category.png')} alt=""/>
-                </Button>
-            </Box>
-        </>
+            </ScrollView>
+        </SafeAreaView>
     )
 }
 
@@ -95,7 +157,6 @@ const styles = StyleSheet.create({
         alignItems:'center',
         color: 'white',
         fontWeight: '800',
-      
     },
     listCategory: {
         width: '80%',
@@ -103,40 +164,16 @@ const styles = StyleSheet.create({
         flexDirection: 'row',
         flexWrap: 'wrap',
         alignSelf: 'center',
+        justifyContent: 'flex-start'
     },
     studyStatus: {
-        width: '25%',
-        paddingVertical: 5,
-        paddingHorizontal: 5,
-        backgroundColor: '#81C8FF',
-        color: 'black',
+        width: '100%',
+        height: 30,
+        color: 'white',
         textAlign: 'center',
         fontSize:11,
         fontWeight: '800',
-        borderRadius: 5,
-        marginBottom: 10,
-        marginRight:10,
-        display:'flex',
-        flexDirection: 'row',
     },
-    navbar: {
-        position:'absolute',
-        width: '100%',
-        height: 60,
-        bottom: 0,
-        display: 'flex',
-        flexDirection: 'row',
-        alignItems: 'center',
-        justifyContent: 'space-evenly',
-        backgroundColor: '#FFFFFF',
-    },
-    navbarButton: {
-        backgroundColor:'transparent',
-    },
-    navbarImage: {
-        width: 30,
-        height: 30,
-    }
 })
 
 export default AddCategory
