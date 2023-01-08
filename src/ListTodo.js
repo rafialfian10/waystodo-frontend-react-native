@@ -8,7 +8,7 @@ import AsyncStorage from '@react-native-async-storage/async-storage';
 // api
 import { API } from './config/api';
 
-const ListTodo = ({navigation}) => {
+const ListTodo = ({navigation, CheckLogin}) => {
     const [text, setText] = useState('');
 
     // state select status
@@ -65,19 +65,29 @@ const ListTodo = ({navigation}) => {
             if(response) {
                 await AsyncStorage.removeItem("token")
             }
-            navigation.navigate("Login")
-            // CheckLogin()
+            
+            CheckLogin()
         } catch (err) {
             console.log(err)
-            // CheckLogin()
-            await AsyncStorage.removeItem("token")
         }
     }
     // end handle logout
 
-    const handleDetailList = () => {
-        navigation.navigate("DetailList")
-    }
+    // handle detail course
+    const handleDetailCourse = (id) => {
+        navigation.navigate(`DetailList/${id}`)
+    } 
+
+
+
+    // function color
+    const generateColor = () => {
+        const randomColor = Math.floor(Math.random() * 16777215)
+          .toString(16)
+          .padStart(6, '0');
+        return `#${randomColor}`;
+    };
+
     return (
         <SafeAreaView>
                 {/* Content profile */}
@@ -133,9 +143,11 @@ const ListTodo = ({navigation}) => {
                     {/* Content study */}
                     {courses?.map((item2, i) => {
                         return (
-                            <Box style={{width: '95%', paddingVertical:10, paddingHorizontal:10, marginBottom: 20, backgroundColor: '#DAEFFF', borderRadius: 5, display:'flex', flexDirection:'row',justifyContent:'space-evenly', alignSelf:'center'}} key={i}>
+                            <>
+                        {console.log("id",item2._id)}
+                        <Box style={{width: '95%', paddingVertical:10, paddingHorizontal:10, marginBottom: 20, backgroundColor: generateColor(), borderRadius: 5, display:'flex', flexDirection:'row',justifyContent:'space-evenly', alignSelf:'center'}} key={i}>
                                 <Box style={styles.contentStudy2}>
-                                    <Text style={styles.studyTitle}>{item2.name}</Text>
+                                    <Text style={styles.studyTitle} onPress={() => handleDetailCourse(item2._id) } >{item2.name}</Text>
                                     <Text style={styles.studyDesc}>{item2.description}</Text>
                                     <Box style={styles.studyDate}>
                                         <Image style={styles.studyImage} source={require('../assets/calender.png')} alt=""/>
@@ -174,6 +186,7 @@ const ListTodo = ({navigation}) => {
                                     <Image style={styles.studyImageStatus} source={require('../assets/ellipse.png')} alt=""/>
                                 </Box>
                             </Box>
+                            </>
 
                     )})}
                 </Box>                    

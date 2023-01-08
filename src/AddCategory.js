@@ -70,7 +70,14 @@ const AddCategory = ({navigation}) => {
           }
       }
 
-    const color = ['#81C8FF', 'FF8181', 'FFB681', '#FF5555;'];
+      // function random color
+      const randomColor = () => {
+        const randomColor = Math.floor(Math.random() * 16777215)
+          .toString(16)
+          .padStart(6, '0');
+        return `#${randomColor}`;
+      };
+    
     return (
         <SafeAreaView>
             <ScrollView>
@@ -86,7 +93,7 @@ const AddCategory = ({navigation}) => {
                     {categories?.map((item, i) => {
                         {if(item.name === "study") {
                             return (
-                                <Box key={i} style={{height: 30, width: '20%', marginRight: 15, marginBottom: 10, borderRadius: 5, backgroundColor: '#81C8FF',}}>
+                                <Box key={i} style={{height: 30, width: '20%', marginRight: 15, marginBottom: 10, borderRadius: 5, backgroundColor: '#81C8FF'}}>
                                     <Text style={styles.studyStatus}>{item.name}</Text>
                                 </Box>
                             )} else if(item.name === "home work") {
@@ -102,7 +109,7 @@ const AddCategory = ({navigation}) => {
                                     )
                             } else {
                                 return (
-                                    <Box key={i} style={{height: 30, width: '20%', marginRight: 15, marginBottom: 10, borderRadius: 5,  backgroundColor: '#D9D9D9'}}>
+                                    <Box key={i} style={{height: 30, width: '20%', marginRight: 15, marginBottom: 10, borderRadius: 5,  backgroundColor: randomColor()}}>
                                         <Text style={styles.studyStatus}>{item.name}</Text>
                                     </Box>
                             )
@@ -173,6 +180,7 @@ const styles = StyleSheet.create({
         textAlign: 'center',
         fontSize:11,
         fontWeight: '800',
+        borderRadius: 5,
     },
 })
 

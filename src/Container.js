@@ -77,15 +77,15 @@ const Container = () => {
           <>
             <Stack.Screen name="Index" component={Index} options={{headerShown: false }} />
             <Stack.Screen name="Register" component={Register} options={{headerShown: false }} />
-            <Stack.Screen name="Login" component={Login} options={{headerShown: false }} />
+            <Stack.Screen name="Login" component={() => <Login CheckLogin={CheckLogin}/>} options={{headerShown: false }} />
           </>
         ) : (
           <>
             <Stack.Screen name="MyTab" component={MyTab} options={{headerShown: false }} />
-            <Stack.Screen name="ListTodo" component={ListTodo} options={{headerShown: true }} />
+            <Stack.Screen name="ListTodo" component={() => <ListTodo CheckLogin={CheckLogin}/>} options={{headerShown: true }} />
             <Stack.Screen name="AddList" component={AddList} options={{headerShown: true }} />
             <Stack.Screen name="AddCategory" component={AddCategory} options={{headerShown: true }} />
-            <Stack.Screen name="DetailList" component={DetailList} options={{headerShown: true }} />
+            <Stack.Screen name="DetailList/:id" component={DetailList} options={{headerShown: true }} />
           </>
         )}
       </Stack.Navigator>

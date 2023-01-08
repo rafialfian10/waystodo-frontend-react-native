@@ -11,7 +11,7 @@ const wait = (timeout) => {
     return new Promise(resolve => setTimeout(resolve, timeout));
   }
 
-const Login = ({navigation}) => {
+const Login = ({navigation, CheckLogin}) => {
 
     const [refreshing, setRefreshing] = useState(false);
 
@@ -78,15 +78,15 @@ const Login = ({navigation}) => {
                 if(response) {
                     await AsyncStorage.setItem("token", response.data.token)
                 }
-                // refetchCategories()
+
+                CheckLogin()
                 alert("Login successfully")
-                navigation.navigate('ListTodo'); 
                 } else {
                     setError(messageError)
                 }
           } catch (err) {
               console.log(err)
-              alert("Login failed")
+              alert("Login failed (email / password incorrect)")
           }
       }
     return (

@@ -1,4 +1,3 @@
-
 import { Text, Box, Image, Button, TextArea, Select } from 'native-base';
 import { StyleSheet, TextInput } from 'react-native';
 import { DateTimePickerAndroid } from '@react-native-community/datetimepicker';
@@ -19,10 +18,7 @@ const AddList = ({navigation}) => {
     console.log("State select:", select)
 
     useEffect(() => {
-        setForm({
-            category_id: select,
-            date: date,
-        })
+       category_id: select
     }, [])
 
     // state form for post data
@@ -95,7 +91,7 @@ const AddList = ({navigation}) => {
                  // Insert data
                 const response = await API.post('/course', {
                     category_id: [],
-                    date: moment(date).format("MMMM D, YYYY"),
+                    date: date,
                     description: form.description,
                     name: form.name
                   });

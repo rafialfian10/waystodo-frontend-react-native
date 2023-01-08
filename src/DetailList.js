@@ -1,8 +1,24 @@
 import { Text, Box, Button, Image } from 'native-base';
 import { StyleSheet, SafeAreaView, ScrollView } from 'react-native';
 import  React, { useState } from 'react';
+import { useQuery } from 'react-query';
+import { API } from './config/api';
+import { useParams } from 'react-router-dom';
 
 const DetailList = ({navigation}) => {
+
+    const [course, setCourse] = useState()
+
+    // let id = useParams()
+    // id = parseInt(id)
+
+    // // get courses by id 
+    // let { data: courseById } = useQuery('courseByIdCache', async () => {
+    //     const response = await API.get(`/course/${id}`);
+    //     setCourse(response.data)
+    // });
+    // console.log("Course by id", courseById)
+    // console.log("Course by id", course)
     return (
         <SafeAreaView>
             <ScrollView>
