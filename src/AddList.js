@@ -14,20 +14,20 @@ const AddList = ({navigation}) => {
     const [categories, setCategories] = useState()
 
     // state select
-    const [select, setSelect] = useState();
-    console.log("State select:", select)
+    const [names, setName] = useState()
+    const [categorys, setCategory] = useState();
+    const [dates, setDate] = useState(new Date());
+    const [descriptions, setDescription] = useState();
+
+    // get categories for list categories
+    let { data: listCategory, refetch: refetchCategories} = useQuery('categoryCache', async () => {
+    const response = await API.get(`/category`);
+    setCategories(response.data)
+    });
 
     useEffect(() => {
-       category_id: select
+        listCategory
     }, [])
-
-    // state form for post data
-    const [form, setForm] = useState({
-        name: "",
-        category_id: "",
-        date: "",
-        description: "",
-    });
 
     // state error
     const [error, setError] = useState({
@@ -36,17 +36,17 @@ const AddList = ({navigation}) => {
         date: "",
         description: "",
     })
-    console.log("state form:", form)
-
-    // handle change
-    const handleChange = (name, value) => {
-        setForm({...form,[name]: value
-        })
-    }
 
     // handle submit category
     const handleSubmit =  async () => {
         try {
+
+            // config
+            const config = {
+                headers : {
+                    "Content-type": "application/json"
+                }
+            }
             // object error message
             const messageError = {
                 name: "",
@@ -56,28 +56,28 @@ const AddList = ({navigation}) => {
             }
 
             // validasi form name
-            if (form.name === "") {
+            if (names === "") {
                 messageError.name = "Name must be filled out";
             } else {
                 messageError.name = ""
             }
 
             // validasi form category
-            if (form.category === "") {
+            if (categorys === "") {
                 messageError.category = "Category must be filled out";
             } else {
                 messageError.category = ""
             }
 
             // // validasi form date
-            if (form.date === "") {
+            if (dates === "") {
                 messageError.date = "Date must be filled out";
             } else {
                 messageError.date = ""
             }
 
             // validasi form description
-            if (form.description === "") {
+            if (descriptions === "") {
                 messageError.description = "Description must be filled out";
             } else {
                 messageError.description = ""
@@ -88,16 +88,19 @@ const AddList = ({navigation}) => {
                 messageError.date === "" &&
                 messageError.description === ""
                 ) {
-                 // Insert data
-                const response = await API.post('/course', {
-                    category_id: [],
-                    date: date,
-                    description: form.description,
-                    name: form.name
-                  });
-                refetchCategory()
+
+                const body = {
+                    name: names,
+                    category: categorys,
+                    date: moment(dates).format("YYYY-MM-DD"),
+                    description: descriptions,
+                }
+                
+                // Insert data
+                const response = await API.post('/course', body, config);
                 alert("List has been added")
-                navigation.navigate('ListTodo'); 
+                refetchCategories()
+                navigation.push('ListTodo'); 
                 } else {
                     setError(messageError)
                 }
@@ -107,9 +110,6 @@ const AddList = ({navigation}) => {
       }
 
     // date
-    const [date, setDate] = useState(new Date(1598051730000));
-    console.log("state date :", date)
-
     const onChange = (event, selectedDate) => {
       const currentDate = selectedDate;
       setDate(currentDate);
@@ -117,7 +117,7 @@ const AddList = ({navigation}) => {
   
     const showMode = (currentMode) => {
       DateTimePickerAndroid.open({
-        value: date,
+        value: dates,
         onChange,
         mode: currentMode,
         is24Hour: true,
@@ -129,45 +129,38 @@ const AddList = ({navigation}) => {
     };
     // end date
 
-    // get countries for list categories
-    let { data: listCategory, refetch: refetchCategory} = useQuery('listCategoriesCache', async () => {
-        const response = await API.get(`/category`);
-        if(response.status == 200) {
-            setCategories(response.data)
-        }      
-    });
     return (
         <>
             <Box>
                     <Text style={styles.title}>Add List</Text>
                     {/* name */}
-                    <TextInput style={styles.textInput} placeholder="Name" onChangeText={(value) => handleChange("name", value)} value={form.name}/>
+                    <TextInput style={styles.textInput} placeholder="Name" onChangeText={(value) => setName(value)}/>
                     {error.name && <Text style={{width:'80%', alignSelf:'center', color:'red'}}>{error.name}</Text>}
 
                     {/* category */}
                     <Box style={styles.selectInput}>
-                        <Select style={{fontSize:14, marginLeft: 5}} selectedValue={select} placeholder="Category" _selectedItem={{ bg: "teal.200" }} onValueChange={(select) => {setSelect(select)}} value={form.category}>
-                                {/* looping categories */}
-                                {categories?.map((item, i) => {
-                                    return (
-                                        <Select.Item label={item?.name} value={item?._id} key={i}/>   
-                                    )
-                                })}  
-                        </Select>   
+                        <Select style={{ fontSize: 14, marginLeft: 5 }} placeholder="Category" _selectedItem={{ bg: "teal.200" }} onValueChange={(value) => setCategory([value])}>
+                            {/* looping categories */}
+                            {categories?.map((item, i) => {
+                                return (
+                                    <Select.Item key={i} label={item.name} value={item._id} />
+                                )
+                            })}
+                        </Select>
                     </Box>
                     {error.category && <Text style={{width:'80%', alignSelf:'center', color:'red'}}>{error.category}</Text>}
 
                     {/* date */}
                     <Box style={styles.dateInput}>
-                        <Button onChangeText={(value) => handleChange("date", value)} value={form.date} style={styles.dateButton} onPress={showDatepicker}/>
-                        {date.toLocaleDateString()}
+                        <Button style={styles.dateButton} onPress={showDatepicker}/>
+                        <Text>{dates ? dates.toLocaleDateString() : "Select"}</Text>
                         <Image style={{width: 25, height: 25, position:'absolute', right:15}} source={require('../assets/calender.png')} alt=""/>
                     </Box>
                     {error.date && <Text style={{width:'80%', alignSelf:'center', color:'red'}}>{error.date}</Text>}
 
                     {/* description */}
                     <Box style={styles.textArea}>
-                        <TextArea style={{fontSize:15, paddingLeft: 20}} h={40} placeholder="Description" w="100%" onChangeText={(value) => handleChange("description", value)} value={form.description} />
+                        <TextArea style={{fontSize:15, paddingLeft: 20}} h={40} placeholder="Description" w="100%" onChangeText={(value) => setDescription(value)} />
                     </Box>
                     {error.description && <Text style={{width:'80%', alignSelf:'center', color:'red'}}>{error.description}</Text>}
                     <Button style={styles.button} onPress={handleSubmit}><Text style={styles.text}>Add List</Text></Button>

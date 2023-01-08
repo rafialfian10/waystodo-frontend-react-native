@@ -1,4 +1,4 @@
-import { Text, Box, Image, Button, Select, Menu, Pressable, Divider } from 'native-base';
+import { Text, Box, Image, Button, Select, Menu, Pressable, Checkbox } from 'native-base';
 import { StyleSheet, TextInput, SafeAreaView, ScrollView } from 'react-native';
 import { DateTimePickerAndroid } from '@react-native-community/datetimepicker';
 import  React, { useState, useEffect } from 'react';
@@ -9,7 +9,26 @@ import AsyncStorage from '@react-native-async-storage/async-storage';
 import { API } from './config/api';
 
 const ListTodo = ({navigation, CheckLogin}) => {
-    const [text, setText] = useState('');
+    
+    // state search
+    const [search, setSearch] = useState([])
+
+    // state query
+    const [query, setQuery] = useState("")
+
+    useEffect(() => {
+
+        const searchData = async () => {
+            try {
+                const {data: searchData, refetch: refetchSearch} = await API.get(`/course`)
+                setSearch(search.results)
+                console.log(searchData)
+            } catch (error) {
+                console.error(error)
+            }
+        }
+        searchData()
+    }, [query])
 
     // state select status
     const [status, setStatus] = useState();
@@ -25,13 +44,12 @@ const ListTodo = ({navigation, CheckLogin}) => {
          const response = await API.get(`/course?$lookup=*`);
          setCourses(response.data)
      });
-     console.log("Courses :", courses)
 
      // state select categories for list
     const [categories, setCategories] = useState()
 
     // get categories 
-    let { data: allCategories, refetch: refetchCategories} = useQuery('categoryCache', async () => {
+    let { data: allCategories} = useQuery('categoryCache', async () => {
         const response = await API.get(`/category`);
         setCategories(response.data)  
     });
@@ -73,12 +91,11 @@ const ListTodo = ({navigation, CheckLogin}) => {
     }
     // end handle logout
 
-    // handle detail course
-    const handleDetailCourse = (id) => {
-        navigation.navigate(`DetailList/${id}`)
-    } 
-
-
+    // get user
+    let { data: user} = useQuery('userCache', async () => {
+        const response = await API.get(`/auth/user`);
+        return response.data
+    });
 
     // function color
     const generateColor = () => {
@@ -93,12 +110,12 @@ const ListTodo = ({navigation, CheckLogin}) => {
                 {/* Content profile */}
                 <Box style={styles.contentProfile1}>
                         <Box style={styles.contentProfile2}>
-                            <Text style={styles.text}>Hi Rafi</Text>
-                            <Text style={styles.lists}>200 Lists</Text>
+                            <Text style={styles.text}>{user?.firstName}</Text>
+                            <Text style={styles.lists}>{courses?.length} Lists</Text>
                         </Box>
                         <Menu w="190" trigger={triggerProps => {
                             return <Pressable {...triggerProps}>
-                                    <Image source={require('../assets/saitama.png')} style={styles.photo} alt=""/></Pressable>;}}>
+                                <Image source={require('../assets/saitama.png')} style={styles.photo} alt=""/></Pressable>;}}>
                                 <Menu.Item>Profile</Menu.Item>
                                 <Menu.Item onPress={handleLogout}>Logout</Menu.Item>
                         </Menu>
@@ -107,7 +124,7 @@ const ListTodo = ({navigation, CheckLogin}) => {
                 <Box style={styles.container}>
 
                     {/* Content input */}
-                    <TextInput style={styles.textInput1} placeholder="Search List....." onChangeText={newText => setText(newText)}defaultValue={text}/>
+                    <TextInput style={styles.textInput1} placeholder="Search List....." onChange={event => setQuery(event.target.value)}value={query}/>
                     <Box style={styles.contentInput}>
                         {/* date */}
                         <Box style={styles.selectInput}>
@@ -143,11 +160,10 @@ const ListTodo = ({navigation, CheckLogin}) => {
                     {/* Content study */}
                     {courses?.map((item2, i) => {
                         return (
-                            <>
-                        {console.log("id",item2._id)}
+                            
                         <Box style={{width: '95%', paddingVertical:10, paddingHorizontal:10, marginBottom: 20, backgroundColor: generateColor(), borderRadius: 5, display:'flex', flexDirection:'row',justifyContent:'space-evenly', alignSelf:'center'}} key={i}>
                                 <Box style={styles.contentStudy2}>
-                                    <Text style={styles.studyTitle} onPress={() => handleDetailCourse(item2._id) } >{item2.name}</Text>
+                                    <Text style={styles.studyTitle} onPress={() => navigation.push('DetailList', {courses: courses[i]})}>{item2.name}</Text>
                                     <Text style={styles.studyDesc}>{item2.description}</Text>
                                     <Box style={styles.studyDate}>
                                         <Image style={styles.studyImage} source={require('../assets/calender.png')} alt=""/>
@@ -156,7 +172,7 @@ const ListTodo = ({navigation, CheckLogin}) => {
                                 </Box>
 
                                 <Box style={styles.contentStudy3}>
-                                    {item2.category_id.map((cat, i) => {
+                                    {item2.category.map((cat, i) => {
                                         {if(cat.name === "study") {
                                             return (
                                                 <Box style={{backgroundColor:"#81C8FF", borderRadius:5, height:35, marginBottom: 10}} key={i}>
@@ -183,11 +199,9 @@ const ListTodo = ({navigation, CheckLogin}) => {
                                             )
                                         }}
                                     })}
-                                    <Image style={styles.studyImageStatus} source={require('../assets/ellipse.png')} alt=""/>
+                                    <Checkbox padding={3} rounded={'full'} value='value'  />
                                 </Box>
-                            </Box>
-                            </>
-
+                        </Box>
                     )})}
                 </Box>                    
             </ScrollView>

@@ -1,29 +1,17 @@
 import { Text, Box, Button, Image } from 'native-base';
 import { StyleSheet, SafeAreaView, ScrollView } from 'react-native';
 import  React, { useState } from 'react';
-import { useQuery } from 'react-query';
-import { API } from './config/api';
-import { useParams } from 'react-router-dom';
 
-const DetailList = ({navigation}) => {
+const DetailList = ({route, navigation}) => {
 
-    const [course, setCourse] = useState()
-
-    // let id = useParams()
-    // id = parseInt(id)
-
-    // // get courses by id 
-    // let { data: courseById } = useQuery('courseByIdCache', async () => {
-    //     const response = await API.get(`/course/${id}`);
-    //     setCourse(response.data)
-    // });
-    // console.log("Course by id", courseById)
-    // console.log("Course by id", course)
+    const { courses } = route.params;
+  
     return (
         <SafeAreaView>
             <ScrollView>
                 <Box style={styles.contentDetail}>
-                    <Text style={styles.title}>Study - Golang</Text>
+                    <Text style={styles.title}>{courses.name}</Text>
+                    <Text style={styles.date}>{courses.date}</Text>
                     <Text>Learn Golang to improve fundamentals and familiarize with coding.</Text>
                     <Text>Advantages of Go Go has advantages over other languages, including:</Text>
                     <Text>Supports concurrency at the language level with fairly easy application</Text>
@@ -81,7 +69,13 @@ const styles = StyleSheet.create({
         fontSize: 25, 
         fontWeight: 'bold', 
         marginTop: 50,
-        marginBottom:20,
+        color: 'black'
+    },
+    date: {
+        marginBottom: 50,
+        paddingVertical: 5,
+        fontWeight: 'bold', 
+        color: 'black'
     },
 })
 
