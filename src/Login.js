@@ -1,24 +1,13 @@
 import { Text, Box, Image } from 'native-base';
 import React, { useState } from 'react';
-import { StyleSheet, TextInput, TouchableOpacity, RefreshControl } from 'react-native';
+import { StyleSheet, TextInput, TouchableOpacity } from 'react-native';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { useQuery } from 'react-query';
 
 // api
 import { API } from './config/api';
 
-const wait = (timeout) => {
-    return new Promise(resolve => setTimeout(resolve, timeout));
-  }
-
 const Login = ({navigation, CheckLogin}) => {
-
-    const [refreshing, setRefreshing] = useState(false);
-
-    const onRefresh = React.useCallback(() => {
-        setRefreshing(true);
-        wait(2000).then(() => setRefreshing(false));
-      }, []);
 
      // state form
      const [form, setForm] = useState({

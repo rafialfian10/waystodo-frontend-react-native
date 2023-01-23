@@ -1,15 +1,17 @@
 import { Text, Box, Button, Image } from 'native-base';
 import { StyleSheet, SafeAreaView, ScrollView } from 'react-native';
-import  React, { useState } from 'react';
+import { useQuery } from 'react-query';
+import { API } from './config/api';
 
 const DetailList = ({route, navigation}) => {
 
     const { courses } = route.params;
+    const { bgColor } = route.params;
   
     return (
         <SafeAreaView>
             <ScrollView>
-                <Box style={styles.contentDetail}>
+                <Box style={styles.contentDetail} backgroundColor={bgColor}>
                     <Text style={styles.title}>{courses.name}</Text>
                     <Text style={styles.date}>{courses.date}</Text>
                     <Text>Learn Golang to improve fundamentals and familiarize with coding.</Text>
@@ -62,7 +64,6 @@ const styles = StyleSheet.create({
         padding: 20,
         paddingBottom: 100,
         borderRadius: 5,
-        backgroundColor: '#DAEFFF'
     },
     title: {
         paddingVertical: 5,

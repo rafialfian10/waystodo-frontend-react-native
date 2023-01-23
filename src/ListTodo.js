@@ -1,34 +1,42 @@
 import { Text, Box, Image, Button, Select, Menu, Pressable, Checkbox } from 'native-base';
 import { StyleSheet, TextInput, SafeAreaView, ScrollView } from 'react-native';
 import { DateTimePickerAndroid } from '@react-native-community/datetimepicker';
-import  React, { useState, useEffect } from 'react';
+import  React, { useState } from 'react';
 import { useQuery } from 'react-query';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 
 // api
 import { API } from './config/api';
 
-const ListTodo = ({navigation, CheckLogin}) => {
+const ListTodo = ({navigation}) => {
     
     // state search
-    const [search, setSearch] = useState([])
+    const [search, setSearch] = useState("")
 
-    // state query
-    const [query, setQuery] = useState("")
+    // handle search
+    const handleSearch = (value) => {
+        setSearch(value)
+    }
 
-    useEffect(() => {
+    // state checked
+    const [check, setCheck] = useState(false)
+    console.log("Checked :",check)
 
-        const searchData = async () => {
-            try {
-                const {data: searchData, refetch: refetchSearch} = await API.get(`/course`)
-                setSearch(search.results)
-                console.log(searchData)
-            } catch (error) {
-                console.error(error)
-            }
+    const handleCheck =  async () => {
+        try {
+        
+        const config = {
+            headers: {
+                'Content-type': 'application/json',         
+            },
+        };
+                  
+        const response = await API.post('/course', check, config);        
+        // alert("Category has been added")
+        } catch (err) {
+            console.log(err)
         }
-        searchData()
-    }, [query])
+    }
 
     // state select status
     const [status, setStatus] = useState();
@@ -45,7 +53,7 @@ const ListTodo = ({navigation, CheckLogin}) => {
          setCourses(response.data)
      });
 
-     // state select categories for list
+    // state select categories for list
     const [categories, setCategories] = useState()
 
     // get categories 
@@ -77,17 +85,19 @@ const ListTodo = ({navigation, CheckLogin}) => {
     // end date
 
     // handle logout
-    const handleLogout = async () => {
-        try {
-            const response = await API.post('auth/logout');
-            if(response) {
-                await AsyncStorage.removeItem("token")
-            }
+    const handleLogout = () => {
+        // try {
+        //     const response = await API.post('auth/logout');
+            // if(response) {
+                AsyncStorage.removeItem("token")
+                alert('Logut successfully')
+                navigation.navigate('Index')
+                
+            // }   
             
-            CheckLogin()
-        } catch (err) {
-            console.log(err)
-        }
+        // } catch (err) {
+        //     console.log(err)
+        // }
     }
     // end handle logout
 
@@ -97,13 +107,8 @@ const ListTodo = ({navigation, CheckLogin}) => {
         return response.data
     });
 
-    // function color
-    const generateColor = () => {
-        const randomColor = Math.floor(Math.random() * 16777215)
-          .toString(16)
-          .padStart(6, '0');
-        return `#${randomColor}`;
-    };
+    // array color
+    const color = ['#CDF5F6', '#F9D8D6', '#EFF9DA', '#D6CDEA', '#D3D3D3']
 
     return (
         <SafeAreaView>
@@ -124,7 +129,7 @@ const ListTodo = ({navigation, CheckLogin}) => {
                 <Box style={styles.container}>
 
                     {/* Content input */}
-                    <TextInput style={styles.textInput1} placeholder="Search List....." onChange={event => setQuery(event.target.value)}value={query}/>
+                    <TextInput style={styles.textInput1} placeholder="Search List....." onChangeText={(value) => handleSearch(value)} value={search}/>
                     <Box style={styles.contentInput}>
                         {/* date */}
                         <Box style={styles.selectInput}>
@@ -158,12 +163,17 @@ const ListTodo = ({navigation, CheckLogin}) => {
                     </Box>
 
                     {/* Content study */}
-                    {courses?.map((item2, i) => {
+                    {courses?.filter(itemSearch => {
+                        if(search == "") {
+                            return itemSearch
+                        } else if(itemSearch.name.toLowerCase().includes(search.toLocaleLowerCase())) {
+                            return itemSearch
+                        }
+                    }).map((item2, i) => {
                         return (
-                            
-                        <Box style={{width: '95%', paddingVertical:10, paddingHorizontal:10, marginBottom: 20, backgroundColor: generateColor(), borderRadius: 5, display:'flex', flexDirection:'row',justifyContent:'space-evenly', alignSelf:'center'}} key={i}>
+                        <Box style={{width: '95%', paddingVertical:10, paddingHorizontal:10, marginBottom: 20, backgroundColor:color[i], borderRadius: 5, display:'flex', flexDirection:'row',justifyContent:'space-evenly', alignSelf:'center'}} key={i}>
                                 <Box style={styles.contentStudy2}>
-                                    <Text style={styles.studyTitle} onPress={() => navigation.push('DetailList', {courses: courses[i]})}>{item2.name}</Text>
+                                    <Text style={styles.studyTitle} onPress={() => navigation.push('DetailList', {courses: courses[i], bgColor:color[i]})}>{item2.name}</Text>
                                     <Text style={styles.studyDesc}>{item2.description}</Text>
                                     <Box style={styles.studyDate}>
                                         <Image style={styles.studyImage} source={require('../assets/calender.png')} alt=""/>
@@ -199,7 +209,7 @@ const ListTodo = ({navigation, CheckLogin}) => {
                                             )
                                         }}
                                     })}
-                                    <Checkbox padding={3} rounded={'full'} value='value'  />
+                                    <Checkbox padding={3} rounded={'full'} onChange={setCheck} value={check} onPress={handleCheck}/>
                                 </Box>
                         </Box>
                     )})}
