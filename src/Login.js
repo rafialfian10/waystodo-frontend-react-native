@@ -1,13 +1,19 @@
-import { Text, Box, Image } from 'native-base';
-import React, { useState } from 'react';
 import { StyleSheet, TextInput, TouchableOpacity } from 'react-native';
+import { Text, Box, Image } from 'native-base';
+import React, { useState, useContext } from 'react';
 import AsyncStorage from '@react-native-async-storage/async-storage';
-import { useQuery } from 'react-query';
+
+// user context
+import { UserContext } from './Context/UserContext';
+
+import { setAuthToken } from './Config/api';
 
 // api
-import { API } from './config/api';
+import { API } from './Config/api';
 
-const Login = ({navigation, CheckLogin}) => {
+const Login = ({navigation}) => {
+
+    const [state, dispatch] = useContext(UserContext);
 
      // state form
      const [form, setForm] = useState({
@@ -29,10 +35,9 @@ const Login = ({navigation, CheckLogin}) => {
         })
       };
   
-      // handle submit category
-      const handleSubmit =  async () => {
+    // handle submit category
+    const handleSubmit =  async () => {
         try {
-            // konfigurasi file
             const config = {
                 headers: {
                   'Content-Type': 'application/json',
@@ -46,7 +51,7 @@ const Login = ({navigation, CheckLogin}) => {
   
             // validasi form email
             if (form.email === "") {
-              messageError.email = "Email must be filled out";
+                messageError.email = "Email must be filled out";
             } else {
                 messageError.email = ""
             }
@@ -66,18 +71,22 @@ const Login = ({navigation, CheckLogin}) => {
 
                 if(response) {
                     await AsyncStorage.setItem("token", response.data.token)
+                    dispatch({
+                        type: 'LOGIN_SUCCESS',
+                        payload: response.data,
+                    });
+                    setAuthToken(response.data.token);
+                    alert("Login successfully")
                 }
 
-                CheckLogin()
-                alert("Login successfully")
-                } else {
-                    setError(messageError)
-                }
-          } catch (err) {
-              console.log(err)
-              alert("Login failed (email / password incorrect)")
-          }
-      }
+            } else {
+                setError(messageError)
+            }
+        } catch (err) {
+            console.log(err)
+            alert("Login failed (email / password incorrect)")
+        }
+    }
     return (
         <Box>
             <Image source={require('../assets/login.png')} style={styles.imageLogin} alt=""/>

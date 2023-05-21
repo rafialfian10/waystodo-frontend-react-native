@@ -1,7 +1,5 @@
 import { Text, Box, Button, Image } from 'native-base';
 import { StyleSheet, SafeAreaView, ScrollView } from 'react-native';
-import { useQuery } from 'react-query';
-import { API } from './config/api';
 
 const DetailList = ({route, navigation}) => {
 
@@ -12,7 +10,7 @@ const DetailList = ({route, navigation}) => {
         <SafeAreaView>
             <ScrollView>
                 <Box style={styles.contentDetail} backgroundColor={bgColor}>
-                    <Text style={styles.title}>{courses.name}</Text>
+                    <Text style={styles.title}>{courses.title}</Text>
                     <Text style={styles.date}>{courses.date}</Text>
                     <Text>Learn Golang to improve fundamentals and familiarize with coding.</Text>
                     <Text>Advantages of Go Go has advantages over other languages, including:</Text>
@@ -33,7 +31,7 @@ const DetailList = ({route, navigation}) => {
                     <Text>Loops</Text>       
                 </Box>
             </ScrollView>
-            {/* navbar */}
+         
             <Box style={styles.navbar}>
                     <Button onPress={() => navigation.navigate("ListTodo")} style={styles.navbarButton}>
                     <Image style={styles.navbarImage} source={require('../assets/white-clipboard-list.png')} alt=""/>

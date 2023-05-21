@@ -6,32 +6,32 @@ import { useQuery } from 'react-query';
 import moment from 'moment';
 
 // api
-import { API } from './config/api';
+import { API } from './Config/api';
 
 const AddList = ({navigation}) => {
 
     // state category for query data
     const [categories, setCategories] = useState()
 
-    // state select
-    const [names, setName] = useState()
-    const [categorys, setCategory] = useState();
-    const [dates, setDate] = useState(new Date());
-    const [descriptions, setDescription] = useState();
+    // state
+    const [title, setTitle] = useState("");
+    const [category, setCategory] = useState(null);
+    const [date, setDate] = useState(new Date());
+    const [description, setDescription] = useState("");
 
     // get categories for list categories
     let { data: listCategory, refetch: refetchCategories} = useQuery('categoryCache', async () => {
-    const response = await API.get(`/category`);
-    setCategories(response.data)
+        const response = await API.get(`/category?$lookup=*`);
+        setCategories(response.data)
     });
 
     useEffect(() => {
-        listCategory
+        refetchCategories();
     }, [])
 
     // state error
     const [error, setError] = useState({
-        name: '',
+        title: "",
         category: "",
         date: "",
         description: "",
@@ -40,70 +40,79 @@ const AddList = ({navigation}) => {
     // handle submit category
     const handleSubmit =  async () => {
         try {
-
-            // config
             const config = {
                 headers : {
                     "Content-type": "application/json"
                 }
             }
+            
             // object error message
             const messageError = {
-                name: "",
+                title: "",
                 category: "",
                 date: "",
                 description: "",
             }
 
-            // validasi form name
-            if (names === "") {
-                messageError.name = "Name must be filled out";
+            // validasi form title
+            if (title === "") {
+                messageError.title = "Title must be filled out";
             } else {
-                messageError.name = ""
+                messageError.title = ""
             }
 
             // validasi form category
-            if (categorys === "") {
+            if (category === "") {
                 messageError.category = "Category must be filled out";
             } else {
                 messageError.category = ""
             }
 
-            // // validasi form date
-            if (dates === "") {
+            // validasi form date
+            if (date === "") {
                 messageError.date = "Date must be filled out";
             } else {
                 messageError.date = ""
             }
 
             // validasi form description
-            if (descriptions === "") {
+            if (description === "") {
                 messageError.description = "Description must be filled out";
             } else {
                 messageError.description = ""
             }
 
-            if (messageError.name === "" &&
+            if (messageError.title === "" &&
                 messageError.category === "" &&
                 messageError.date === "" &&
                 messageError.description === ""
                 ) {
 
-                const body = {
-                    name: names,
-                    category: categorys,
-                    date: moment(dates).format("YYYY-MM-DD"),
-                    description: descriptions,
+                const data = {
+                    title: title,
+                    category: category,
+                    date: moment(date).format("YYYY-MM-DD"),
+                    description: description,
                 }
+
+                const resetForm = () => {
+                    setTitle("");
+                    setCategory(null);
+                    setDate(new Date());
+                    setDescription("");
+                };
                 
                 // Insert data
-                const response = await API.post('/course', body, config);
-                alert("List has been added")
-                refetchCategories()
-                navigation.push('ListTodo'); 
-                } else {
-                    setError(messageError)
+                const response = await API.post('/course', data, config);
+                if(response) {
+                    resetForm();
+                    refetchCategories();
+                    alert("List has been added");
+                    navigation.navigate('ListTodo'); 
                 }
+            } else {
+                setError(messageError)
+            }
           } catch (err) {
               console.log(err)
           }
@@ -117,7 +126,7 @@ const AddList = ({navigation}) => {
   
     const showMode = (currentMode) => {
       DateTimePickerAndroid.open({
-        value: dates,
+        value: date,
         onChange,
         mode: currentMode,
         is24Hour: true,
@@ -132,38 +141,39 @@ const AddList = ({navigation}) => {
     return (
         <>
             <Box>
-                    <Text style={styles.title}>Add List</Text>
-                    {/* name */}
-                    <TextInput style={styles.textInput} placeholder="Name" onChangeText={(value) => setName(value)}/>
-                    {error.name && <Text style={{width:'80%', alignSelf:'center', color:'red'}}>{error.name}</Text>}
+                <Text style={styles.title}>Add List</Text>
+                {/* title */}
+                <Box style={styles.textInput}>
+                    <TextInput placeholder="Title" onChangeText={(value) => setTitle(value)} value={title}/>
+                </Box>
+                {error.title && <Text style={{width:'80%', alignSelf:'center', color:'red'}}>{error.title}</Text>}
 
-                    {/* category */}
-                    <Box style={styles.selectInput}>
-                        <Select style={{ fontSize: 14, marginLeft: 5 }} placeholder="Category" _selectedItem={{ bg: "teal.200" }} onValueChange={(value) => setCategory([value])}>
-                            {/* looping categories */}
-                            {categories?.map((item, i) => {
-                                return (
-                                    <Select.Item key={i} label={item.name} value={item._id} />
-                                )
-                            })}
-                        </Select>
-                    </Box>
-                    {error.category && <Text style={{width:'80%', alignSelf:'center', color:'red'}}>{error.category}</Text>}
+                {/* category */}
+                <Box style={styles.selectInput}>
+                    <Select style={{ fontSize: 14, marginLeft: 5 }} placeholder="Category" _selectedItem={{ bg: "teal.200" }} onValueChange={(value) => setCategory([value])}>
+                        {categories?.map((item) => {
+                            return (
+                                <Select.Item key={item._id} label={item.title} value={!item._id ? category : item._id} />
+                            )
+                        })}
+                    </Select>
+                </Box>
+                {error.category && <Text style={{width:'80%', alignSelf:'center', color:'red'}}>{error.category}</Text>}
 
-                    {/* date */}
-                    <Box style={styles.dateInput}>
-                        <Button style={styles.dateButton} onPress={showDatepicker}/>
-                        <Text>{dates ? dates.toLocaleDateString() : "Select"}</Text>
-                        <Image style={{width: 25, height: 25, position:'absolute', right:15}} source={require('../assets/calender.png')} alt=""/>
-                    </Box>
-                    {error.date && <Text style={{width:'80%', alignSelf:'center', color:'red'}}>{error.date}</Text>}
+                {/* date */}
+                <Box style={styles.dateInput}>
+                    <Button style={styles.dateButton} onPress={showDatepicker}/>
+                    <Text>{date ? date.toLocaleDateString() : "Date"}</Text>
+                    <Image style={{width: 25, height: 25, position:'absolute', right:15}} source={require('../assets/calender.png')} alt=""/>
+                </Box>
+                {error.date && <Text style={{width:'80%', alignSelf:'center', color:'red'}}>{error.date}</Text>}
 
-                    {/* description */}
-                    <Box style={styles.textArea}>
-                        <TextArea style={{fontSize:15, paddingLeft: 20}} h={40} placeholder="Description" w="100%" onChangeText={(value) => setDescription(value)} />
-                    </Box>
-                    {error.description && <Text style={{width:'80%', alignSelf:'center', color:'red'}}>{error.description}</Text>}
-                    <Button style={styles.button} onPress={handleSubmit}><Text style={styles.text}>Add List</Text></Button>
+                {/* description */}
+                <Box style={styles.textArea}>
+                    <TextArea style={{fontSize:15, paddingLeft: 20}} h={40} placeholder="Description" w="100%" onChangeText={(value) => setDescription(value)} value={description} />
+                </Box>
+                {error.description && <Text style={{width:'80%', alignSelf:'center', color:'red'}}>{error.description}</Text>}
+                <Button style={styles.button} onPress={handleSubmit}><Text style={styles.text}>Add List</Text></Button>
             </Box>
         </>
     )
@@ -234,13 +244,13 @@ const styles = StyleSheet.create({
         backgroundColor: '#dcdcdc',
     },
     button: {
+        width: '80%', 
+        height: 50, 
+        marginTop: 20,
+        padding: 10,
         alignSelf: 'center',
         backgroundColor: '#FF5555',
-        padding: 10,
         borderRadius: 5,
-        marginTop: 20,
-        width: 300, 
-        height: 50, 
       },
     text: {
         display:'flex',

@@ -1,7 +1,7 @@
 import { Text, Box, Image, Button, NativeBaseProvider} from 'native-base';
 import React, { useState } from 'react';
 import { StyleSheet, TextInput, TouchableOpacity } from 'react-native';
-import { API } from './config/api';
+import { API } from './Config/api';
 
 const Register = ({navigation}) => {
     

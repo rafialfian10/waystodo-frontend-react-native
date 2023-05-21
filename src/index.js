@@ -9,20 +9,16 @@ const Index = ({navigation}) => {
   const Stack = createStackNavigator();
   const [text, setText] = useState('');
 
-    const handleSubmit = () => {
-        Alert.alert(
-            "Alert Title",
-            "My Alert Msg",
-            [
-              {
-                text: "Cancel",
-                onPress: () => console.log("Cancel Pressed"),
-                style: "cancel"
-              },
-              { text: "OK", onPress: () => console.log("OK Pressed") }
-            ]
-        )
-    }
+  const handleSubmit = () => {
+    Alert.alert(
+      "Alert Title",
+      "My Alert Msg",
+      [
+        {text: "Cancel", onPress: () => console.log("Cancel Pressed"), style: "cancel"},
+        {text: "OK", onPress: () => console.log("OK Pressed")}
+      ]
+    )
+  }
     return (
         <Box>
             <Image source={require('../assets/accept-request.png')} style={styles.image} alt=""/>

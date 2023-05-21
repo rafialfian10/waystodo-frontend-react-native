@@ -1,12 +1,17 @@
 import { extendTheme, NativeBaseProvider } from "native-base";
 import { QueryClient, QueryClientProvider } from 'react-query';
+import { UserContextProvider } from "./src/Context/UserContext";
+import { NavigationContainer } from '@react-navigation/native';
 import Container from "./src/Container";
 import AppLoading from "expo-app-loading";
 
 export default function App() {
 
   // client
-  const client = new QueryClient()
+  const client = new QueryClient();
+
+  // Configuration Native Base Custom Theme
+  const theme = extendTheme();
 
   // Setup Custome Theme
   const customeColor = {
@@ -27,21 +32,20 @@ export default function App() {
     },
   };
 
-  // Configuration Native Base Custom Theme
-  const theme = extendTheme();
-
   // if (!fontsLoaded) {
   //   return <AppLoading />;
   // } else {
   
     return (
-      // <UserContextProvider>
-        <QueryClientProvider client={client}>
-          <NativeBaseProvider theme={theme}>
-              <Container/>
-          </NativeBaseProvider>
-        </QueryClientProvider>
-    // </UserContextProvider>
+      <UserContextProvider>
+        <NavigationContainer>
+          <QueryClientProvider client={client}>
+            <NativeBaseProvider theme={theme}>
+                <Container/>
+            </NativeBaseProvider>
+          </QueryClientProvider>
+        </NavigationContainer>
+      </UserContextProvider>
     );
   }
 

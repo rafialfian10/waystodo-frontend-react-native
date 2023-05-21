@@ -4,63 +4,60 @@ import  React, { useState } from 'react';
 import { useQuery } from 'react-query';
 
 // api
-import { API } from './config/api';
+import { API } from './Config/api';
 
 const AddCategory = ({navigation}) => {
 
-    // state category for get query data
-    const [category, setCategory] = useState()
+    // state title
+    const [form, setForm] = useState({
+        title: "",
+    });
 
     // state error
     const [error, setError] = useState({
-        name: '',
+        title: "",
     })
 
     // get countries
     let { data: categories, refetch: refetchCategories} = useQuery('categoriesCaches', async () => {
         const response = await API.get(`/category`);
         return response.data
-    });
-
-    // state form for post data
-    const [form, setForm] = useState({
-        name: "",
-    });
+    });  
 
     // handle change
-    const handleChange = (name, value) => {
-        setForm({...form,[name]: value
+    const handleChange = (title, value) => {
+        setForm({...form, 
+            [title]: value
         })
     }
 
     // handle submit category
     const handleSubmit =  async () => {
         try {
-            // konfigurasi file
             const config = {
                 headers: {
-                  'Content-type': 'application/json',
-                  
+                  "Content-type": "application/json",
                 },
             };
 
             const messageError = {
-                name: '',
+                title: "",
             }
 
             // validasi form title
-            if (form.name === "") {
-                messageError.name = "Name must be filled out";
+            if (form.title === "") {
+                messageError.title = "Name must be filled out";
             } else {
-                messageError.name = ""
+                messageError.title = ""
             }
 
-            if (messageError.name === "") {
+            if (messageError.title === "") {
                 const body = JSON.stringify(form)
                  // Insert trip data
                 const response = await API.post('/category', body, config);
-                refetchCategories()
-                alert("Category has been added")
+                setForm("");
+                refetchCategories();
+                alert("Category has been added");
                 navigation.navigate('AddCategory'); 
                 } else {
                     setError(messageError)
@@ -81,42 +78,42 @@ const AddCategory = ({navigation}) => {
     return (
         <SafeAreaView>
             <ScrollView>
-            <Box>
-                <Text style={styles.title}>Add Category</Text>
-                <TextInput style={styles.textInput} placeholder="Name" onChangeText={(value) => handleChange("name", value)} value={form.name}/>
-                {error.name && <Text style={{width:'75%', alignSelf:'center', color:'red'}}>{error.name}</Text>}
-                <Button style={styles.button} onPress={handleSubmit}><Text style={styles.text}>Add category</Text></Button>
-                <Text style={styles.title}>List Category</Text>
-            
-                {/* looping categories */}
-                <HStack style={styles.listCategory}>
-                    {categories?.map((item, i) => {
-                        {if(item.name === "study") {
-                            return (
-                                <Box key={i} style={{height: 30, width: '20%', marginRight: 15, marginBottom: 10, borderRadius: 5, backgroundColor: '#81C8FF'}}>
-                                    <Text style={styles.studyStatus}>{item.name}</Text>
-                                </Box>
-                            )} else if(item.name === "home work") {
+                <Box>
+                    <Text style={styles.title}>Add Category</Text>
+                        <TextInput style={styles.textInput} placeholder="Title" onChangeText={(value) => handleChange("title", value)} value={form.title}/>
+                        {error.title && <Text style={{width:'75%', alignSelf:'center', color:'red'}}>{error.title}</Text>}
+                        <Button style={styles.button} onPress={handleSubmit}><Text style={styles.text}>Add category</Text></Button>
+                    <Text style={styles.title}>List Category</Text>
+                
+                    {/* looping categories */}
+                    <HStack style={styles.listCategory}>
+                        {categories?.map((item, i) => {
+                            {if(item.title === "study") {
                                 return (
-                                    <Box key={i} style={{height: 30, width: '20%', marginRight: 15, marginBottom: 10, borderRadius: 5, backgroundColor: '#FF8181'}}>
-                                        <Text style={styles.studyStatus}>{item.name}</Text>
+                                    <Box key={i} style={{height: 30, marginRight: 15, marginBottom: 10, padding: 5, borderRadius: 5, backgroundColor: '#81C8FF'}}>
+                                        <Text style={styles.studyStatus}>{item.title}</Text>
                                     </Box>
-                            )} else if(item.name === "workout"){
-                                return (
-                                    <Box key={i} style={{height: 30, width: '20%', marginRight: 15, marginBottom: 10, borderRadius: 5,  backgroundColor: '#FFB681'}}>
-                                        <Text style={styles.studyStatus}>{item.name}</Text>
-                                    </Box>
-                                    )
-                            } else {
-                                return (
-                                    <Box key={i} style={{height: 30, width: '20%', marginRight: 15, marginBottom: 10, borderRadius: 5,  backgroundColor: randomColor()}}>
-                                        <Text style={styles.studyStatus}>{item.name}</Text>
-                                    </Box>
-                            )
-                        }}
-                    })}
-                </HStack>
-            </Box>
+                                )} else if(item.title === "home work") {
+                                    return (
+                                        <Box key={i} style={{height: 30, marginRight: 15, marginBottom: 10, padding: 5, borderRadius: 5, backgroundColor: '#FF8181'}}>
+                                            <Text style={styles.studyStatus}>{item.title}</Text>
+                                        </Box>
+                                )} else if(item.title === "workout"){
+                                    return (
+                                        <Box key={i} style={{height: 30, marginRight: 15, marginBottom: 10, padding: 5, borderRadius: 5,  backgroundColor: '#FFB681'}}>
+                                            <Text style={styles.studyStatus}>{item.title}</Text>
+                                        </Box>
+                                        )
+                                } else {
+                                    return (
+                                        <Box key={i} style={{height: 30, marginRight: 15, marginBottom: 10, padding: 5, borderRadius: 5, backgroundColor: randomColor()}}>
+                                            <Text style={styles.studyStatus}>{item.title}</Text>
+                                        </Box>
+                                )
+                            }}
+                        })}
+                    </HStack>
+                </Box>
             </ScrollView>
         </SafeAreaView>
     )
@@ -138,11 +135,11 @@ const styles = StyleSheet.create({
         fontSize: 25, 
         fontWeight: 'bold', 
         marginTop: 70,
-        marginBottom:20,
+        marginBottom: 20,
     },
     textInput: {
         alignSelf: 'center',
-        width: 300, 
+        width: '80%', 
         height: 50, 
         backgroundColor: '#dcdcdc', 
         borderRadius: 5, 
@@ -156,7 +153,7 @@ const styles = StyleSheet.create({
         padding: 10,
         borderRadius: 5,
         marginTop: 20,
-        width: 300, 
+        width: '80%', 
         height: 50, 
       },
       text: {
@@ -175,10 +172,10 @@ const styles = StyleSheet.create({
     },
     studyStatus: {
         width: '100%',
-        height: 30,
-        color: 'white',
         textAlign: 'center',
-        fontSize:11,
+        lineHeight: 15,
+        color: 'white',
+        fontSize: 11,
         fontWeight: '800',
         borderRadius: 5,
     },
