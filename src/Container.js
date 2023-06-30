@@ -17,6 +17,7 @@ import DetailList from './DetailList';
 // API
 import { API, setAuthToken } from './Config/api';
 import { UserContext } from './Context/UserContext';
+import Profile from './Profile';
 
 //Create Bottom Tab & tag Navigation
 const Tab = createBottomTabNavigator();
@@ -113,30 +114,13 @@ const Container = () => {
   }, []);
 
   return (
-      // <Stack.Navigator >
-      //   {login === false ? (
-      //     <>
-      //       <Stack.Screen name="Index" component={Index} options={{headerShown: false }} />
-      //       <Stack.Screen name="Register" component={Register} options={{headerShown: false }} />
-      //       <Stack.Screen name="Login" component={Login} options={{headerShown: false }} />
-      //     </>
-      //   ) : (
-      //     <>
-      //       <Stack.Screen name="MyTab" component={MyTab} options={{headerShown: false }} />
-      //       {/* <Stack.Screen name="ListTodo" component={ListTodo} options={{headerShown: true }} />
-      //       <Stack.Screen name="AddList" component={AddList} options={{headerShown: true }} />
-      //       <Stack.Screen name="AddCategory" component={AddCategory} options={{headerShown: true }} /> */}
-      //       <Stack.Screen name="DetailList" component={DetailList} options={{headerShown: true }} />
-      //     </>
-      //   )}
-      // </Stack.Navigator>
-
     <>
       {
       state.isLogin === true ? (
         <Stack.Navigator>
           <Stack.Screen name="MyTab" component={MyTab} options={{headerShown: false }} />
           <Stack.Screen name="DetailList" component={DetailList} options={{headerShown: true }} />
+          <Stack.Screen name="Profile" component={Profile} options={{headerShown: true }} />
         </Stack.Navigator>
       ) : (
         <Stack.Navigator>

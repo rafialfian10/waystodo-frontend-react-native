@@ -1,7 +1,7 @@
 import { Text, Box, Image, Button, Select, Menu, Pressable, Checkbox } from 'native-base';
 import { StyleSheet, TextInput, SafeAreaView, ScrollView, TouchableOpacity } from 'react-native';
 import { DateTimePickerAndroid } from '@react-native-community/datetimepicker';
-import  React, { useState, useEffect, useContext, useMemo } from 'react';
+import  React, { useState, useEffect, useContext  } from 'react';
 import { useQuery } from 'react-query';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 
@@ -58,19 +58,7 @@ const ListTodo = ({navigation}) => {
     const handleSearch = (value) => {
         setSearch(value)
     } 
-
-    // filter category
-    // const filteredCourses = useMemo(() => {
-    //     if (!course) {
-    //         return courses;
-    //     }
-
-    //     return courses.filter((item) => {
-    //         const isCourses = item.title.toLowerCase().includes(course.toLowerCase());
-    //         return isCourses;
-    //     });
-    // }, [courses, course]);
-
+    
     const handleCheck =  async (id, item) => {
         try {
             const config = {
@@ -81,18 +69,18 @@ const ListTodo = ({navigation}) => {
 
             // Mengubah nilai item.checklist menjadi kebalikan nilainya
             const updatedChecklist = !item.checklist; 
+            console.log("data", updatedChecklist)
 
             const body = {
                 checklist: updatedChecklist,
             };
-            // console.log("Body", body);
-
+            
             const response = await API.patch(`/course/${id}`, body, config); 
             if(response) {
                 alert(updatedChecklist ? "Category has been checked" : "Category has been unchecked"); 
-
                 setChecklist(updatedChecklist);
-            }      
+
+            }
         } catch (err) {
             console.log(err)
         }
@@ -146,7 +134,7 @@ const ListTodo = ({navigation}) => {
     useEffect(() => {
         refetchAllCourses();
         refetchAllCategories();
-    }, [allCourses, allCategories])
+    }, [checklist, courses, categories])
 
     return (
         <SafeAreaView>
@@ -159,7 +147,7 @@ const ListTodo = ({navigation}) => {
                 <Menu w="190" trigger={triggerProps => {
                     return <Pressable {...triggerProps}>
                     <Image source={require('../assets/saitama.png')} style={styles.photo} alt=""/></Pressable>;}}>
-                    <Menu.Item>Profile</Menu.Item>
+                    <Menu.Item onPress={() => navigation.navigate("Profile", { id: user?._id })}>Profile</Menu.Item>
                     <Menu.Item onPress={handleLogout}>Logout</Menu.Item>
                 </Menu>
             </Box>
