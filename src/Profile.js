@@ -1,14 +1,14 @@
 import { Text, Box, Image, View, Menu, Pressable } from 'native-base';
-import { StyleSheet, Modal, TextInput, TouchableOpacity } from 'react-native';
+import { StyleSheet, Modal, TextInput, TouchableOpacity, ActivityIndicator } from 'react-native';
 import { useQuery } from 'react-query';
-import { useContext, useState } from 'react';
+import { useContext, useState, useEffect } from 'react';
 import { UserContext } from './Context/UserContext';
 import { useRoute } from '@react-navigation/native';
 
 // api
 import { API } from './Config/api';
 
-const Profile = ({ navigation }) => {
+const Profile = () => {
 
     const route = useRoute();
     const { id } = route.params;
@@ -18,92 +18,113 @@ const Profile = ({ navigation }) => {
     // state modal
     const [modalVisible, setModalVisible] = useState(false);
 
-    // get profile
-    let { data: getDetailProfile, refetch: refetchProfile} = useQuery('getDetailProfileCache', async () => {
+    // state form 
+    const [form, setForm] = useState({
+        firstName: '',
+        email: '',
+    });
+
+    // state error
+    const [error, setError] = useState({
+        firstName: "",
+        email: "",
+    })
+
+    // get detail profile
+    let { data: getDetailProfile, isLoading: profileLoading, refetch: refetchProfile} = useQuery('getDetailProfileCache', async () => {
         const response = await API.get(`/Users/${id}`);
         return response.data;
     });
 
-    // update profile
-    const [form, setForm] = useState({
-        firstName: "",
-        email: "",
-      });
-  
-      // state error
-      const [error, setError] = useState({
-        firstName: "",
-        email: "",
-      })
-  
-      // handle change
-      const handleChange = (name, value) => {
+    // form update profile
+    useEffect(() => {
         setForm({
-        ...form,
-        [name]: value,
-        })
-      };
+          firstName: getDetailProfile?.firstName || "",
+          email: getDetailProfile?.email || "",
+        });
+    }, [getDetailProfile]);
   
-      // handle submit category
-      const handleUpdateProfile = async () => {
-          try {
+    // handle change
+    const handleChange = (name, value) => {
+        setForm((prevForm) => ({
+            ...prevForm,
+            [name]: value,
+        }));
+
+        setError((prevError) => ({
+            ...prevError,
+            [name]: '',
+        }));
+    };
+  
+    // handle update profile
+    const handleUpdateProfile = async () => {
+        // Validasi input
+        let valid = true;
+        const messageError = {
+            firstName: "",
+            email: "",
+        };
+
+        if (form.firstName.trim() === "") {
+            messageError.firstName = "Name is required";
+            valid = false;
+        }
+
+        if (form.email.trim() === "") {
+            messageError.email = "Email is required";
+            valid = false;
+        }
+
+        if (!valid) {
+            setError(messageError);
+            return;
+        }
+
+        try {
             const config = {
                 headers: {
                   'Content-type': 'application/json',
                 },
             };
   
-            const messageError = {
-                firstName: "",
-                email: "",
-            }
-  
-            // validasi form first name
-            if (form.firstName === "") {
-                messageError.firstName = "Name must be filled out";
-            } else {
-                messageError.firstName = "";
-            }
-  
-            // validasi form email
-            if (form.email === "") {
-              messageError.email = "Email must be filled out";
-            } else {
-                messageError.email = "";
-            }
-  
             if (messageError.firstName === "" && messageError.email === "") {
                 const body = JSON.stringify(form);
+                const updatedProfile = {
+                    firstName: form.firstName.trim(),
+                    email: form.email.trim(),
+                };
   
-                 // update profile
-                const response = await API.patch(`/Users/${id}`, body, config);
+                const response = await API.patch(`/Users/${id}`, updatedProfile, config);
                 console.log(response.data)
-                
                 if(response) {
                     alert("Profile has been updated");
                     setModalVisible(false);
-                    setForm({
-                        firstName: "",
-                        email: "",
-                    })
+                    refetchProfile();
                 }
                 
-                refetchProfile();
+            } else {
+                setError(messageError);
+            }
+        } catch (err) {
+          console.log(err);
+        }
+    }
 
-                } else {
-                    setError(messageError);
-                }
-          } catch (err) {
-              console.log(err);
-          }
-      }
+    if (profileLoading) {
+        return (
+            <View>
+                <ActivityIndicator />
+            </View>
+        );
+    }
 
     return (
         <>
             <View style={styles.container}>
                 <Box style={styles.profileContainer}>
                     <Menu w="190" trigger={triggerProps => { return <Pressable {...triggerProps} style={styles.hamburger}>
-                        <Image source={require('../assets/hamburger.png')} style={styles.photo} alt=""/></Pressable>;}}>
+                        <Image source={require('../assets/hamburger.png')} style={styles.imgHamburger} alt=""/></Pressable>;}}>
                         <TouchableOpacity style={[styles.button, styles.buttonOpen]} onPress={() => setModalVisible(true)}>
                             <Text style={styles.textStyle}>Update profile</Text>
                         </TouchableOpacity>
@@ -134,11 +155,11 @@ const Profile = ({ navigation }) => {
                                 <View style={styles.centeredView}>
                                     <View style={styles.modalView}>
                                     
-                                        <TextInput style={styles.textInput} placeholder={getDetailProfile?.firstName} onChangeText={(value) => handleChange("firstName", value)} value={form.firstName}/>
-                                        {error.firstName && <Text style={{width:'100%', alignSelf:'center', color:'red'}}>{error.firstName}</Text>}
+                                        <TextInput style={styles.textInput} onChangeText={(value) => handleChange("firstName", value)} value={form.firstName}/>
+                                        {error.firstName && <Text style={{ width: '100%', alignSelf: 'center', color: 'red' }}>{error.firstName}</Text>}
 
-                                        <TextInput style={styles.textInput} placeholder={getDetailProfile?.email}  onChangeText={(value) => handleChange("email", value)} value={form.email}/>
-                                        {error.email && <Text style={{width:'100%', alignSelf:'center', color:'red'}}>{error.email}</Text>}
+                                        <TextInput style={styles.textInput} onChangeText={(value) => handleChange("email", value)} value={form.email}/>
+                                        {error.email && <Text style={{ width: '100%', alignSelf: 'center', color: 'red' }}>{error.email}</Text>}
 
                                         <Box style={styles.btn}>
                                             <TouchableOpacity style={[styles.buttonModal, styles.buttonClose]} onPress={handleUpdateProfile}>
@@ -167,8 +188,10 @@ const styles = StyleSheet.create({
     },
     hamburger: {
         position: 'absolute',
-        right: 5,
-        top: 5,
+        display: 'flex',
+        justifyContent: 'center',
+        right: 20,
+        height: 40,
         zIndex: 100,
     },
     profileContainer: {
@@ -194,13 +217,6 @@ const styles = StyleSheet.create({
         fontSize: 22,
         fontWeight: 'bold',
         color: 'white',
-        alignSelf: 'center',
-        margin: 5,
-    },
-    lastName:{
-        fontSize: 22,
-        color: 'white',
-        fontWeight: 'bold',
         alignSelf: 'center',
         margin: 5,
     },
@@ -273,19 +289,9 @@ const styles = StyleSheet.create({
         width: 160,
         alignSelf: 'center',
         borderRadius: 15,
-        marginTop: 10,
         padding: 10,
         marginHorizontal: 5,
         elevation: 2,
-    },
-    buttonLogout: {
-        width: 160,
-        alignSelf: 'center',
-        borderRadius: 15,
-        marginTop:10,
-        padding: 10,
-        marginHorizontal: 5,
-        backgroundColor: '#00FCD9',
     },
     buttonOpen: {
         backgroundColor: '#00FCD9',
@@ -300,7 +306,7 @@ const styles = StyleSheet.create({
         padding: 10,
         marginHorizontal: 5,
         elevation: 2,
-        backgroundColor: '#00FCD9'
+        backgroundColor: '#00FCD9',
     },
     textStyle: {
         color: 'white',
