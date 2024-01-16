@@ -1,14 +1,15 @@
-import axios from 'axios'
+// axios
+import axios from "axios";
+// --------------------------------------------------
 
 export const API = axios.create({
-    baseURL: 'https://api.kontenbase.com/query/api/v1/d9bda5b2-9c4a-4a0b-ade9-7fec476bb04e'
-})
+  baseURL: "http://192.168.248.106:5000/api/v1",
+});
 
 export const setAuthToken = (token) => {
-    if (token) {
-      API.defaults.headers.common["Authorization"] = `Bearer ${token}`;
-    } else {
-      delete API.defaults.headers.common["Authorization"];
-    }
+  if (token) {
+    API.defaults.headers.common["Authorization"] = `Bearer ${token}`;
+  } else {
+    delete API.defaults.headers.common["Authorization"];
+  }
 };
-
