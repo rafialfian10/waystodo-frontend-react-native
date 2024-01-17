@@ -14,7 +14,7 @@ import Register from "./Register";
 import Login from "./Login";
 import ListTodo from "./ListTodo";
 import AddCategory from "./AddCategory";
-import AddList from "./AddList";
+import AddTodo from "./AddTodo";
 import DetailList from "./DetailList";
 import Profile from "./Profile";
 import { UserContext } from "./Context/UserContext";
@@ -41,7 +41,7 @@ function MyTab() {
           let iconName;
           if (route.name === "ListTodo") {
             iconName = focused ? "ios-list-circle" : "ios-list-outline";
-          } else if (route.name === "AddList") {
+          } else if (route.name === "AddTodo") {
             iconName = focused ? "ios-add-circle" : "ios-add-circle-outline";
           } else if (route.name === "AddCategory") {
             iconName = focused ? "md-duplicate" : "md-duplicate-outline";
@@ -53,7 +53,7 @@ function MyTab() {
       })}
     >
       <Tab.Screen name="ListTodo" component={ListTodo} />
-      <Tab.Screen name="AddList" component={AddList} />
+      <Tab.Screen name="AddTodo" component={AddTodo} />
       <Tab.Screen name="AddCategory" component={AddCategory} />
     </Tab.Navigator>
   );

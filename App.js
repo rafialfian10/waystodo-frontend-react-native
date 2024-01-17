@@ -36,17 +36,17 @@ export default function App() {
   const theme = extendTheme({ colors: customeColor });
 
   return (
-    <UserContextProvider>
-      <StatusBar style="auto" />
-      <NavigationContainer>
-        <QueryClientProvider client={client}>
+    <QueryClientProvider client={client}>
+      <UserContextProvider>
+        <StatusBar style="auto" />
+        <NavigationContainer>
           <SSRProvider>
             <NativeBaseProvider theme={theme}>
               <Containers />
             </NativeBaseProvider>
           </SSRProvider>
-        </QueryClientProvider>
-      </NavigationContainer>
-    </UserContextProvider>
+        </NavigationContainer>
+      </UserContextProvider>
+    </QueryClientProvider>
   );
 }

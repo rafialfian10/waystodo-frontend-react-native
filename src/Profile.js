@@ -1,105 +1,440 @@
-// import { Text, Box, Image, View, Menu, Pressable } from 'native-base';
+// components react native
+import { useContext, useState, useEffect } from "react";
+import { useQuery } from "react-query";
+import { useRoute } from "@react-navigation/native";
+// import ImagePicker from "react-native-image-picker";
+import validator from "validator";
 import {
   StyleSheet,
-  Modal,
   TextInput,
+  Text,
+  View,
+  Modal,
   TouchableOpacity,
   ActivityIndicator,
+  SafeAreaView,
 } from "react-native";
-import { useQuery } from "react-query";
-import { useContext, useState, useEffect } from "react";
+
+// components native base
+import { Box, Image, Menu, Pressable } from "native-base";
+
+// components
 import { UserContext } from "./Context/UserContext";
-import { useRoute } from "@react-navigation/native";
 
 // api
 import { API } from "./Config/api";
+// ---------------------------------------------------------------------
 
 const Profile = () => {
-  
+  const route = useRoute();
+  const { id } = route.params;
 
-  return <></>;
+  // dispatch
+  const [state, dispatch] = useContext(UserContext);
+
+  // state modal
+  const [modalVisible, setModalVisible] = useState(false);
+
+  // state form
+  const [form, setForm] = useState({
+    user_name: "",
+    email: "",
+    phone: "",
+    photo: "",
+  });
+
+  // state error
+  const [error, setError] = useState({
+    userName: "",
+    email: "",
+    phone: "",
+    photo: "",
+  });
+
+  // get user
+  let {
+    data: profile,
+    isLoading: profileLoading,
+    refetch: refetchProfile,
+  } = useQuery("getDetailuserCache", async () => {
+    const response = await API.get(`/User/${id}`);
+    return response.data.data;
+  });
+
+  useEffect(() => {
+    setForm({
+      user_name: profile?.userName || "",
+      email: profile?.email || "",
+      phone: profile?.phone || "",
+    });
+  }, [profile]);
+
+  // handle upload image
+  const handleImagePicker = async () => {
+    // ImagePicker.showImagePicker({ mediaType: "photo" }, (response) => {
+    //   if (!response.didCancel && !response.error) {
+    //     // Update the 'photo' state with the selected image URI
+    //     setForm((prevForm) => ({
+    //       ...prevForm,
+    //       photo: response.uri,
+    //     }));
+    //     // Clear any previous photo-related errors
+    //     setError((prevError) => ({
+    //       ...prevError,
+    //       photo: "",
+    //     }));
+    //   }
+    // });
+  };
+
+  // handle change
+  const handleChange = (data, value) => {
+    setForm((prevForm) => ({
+      ...prevForm,
+      [data]: value,
+    }));
+
+    if (data === "user_name") {
+      if (value.trim() === "") {
+        setError((prevError) => ({
+          ...prevError,
+          userName: "Username is required",
+        }));
+      } else {
+        setError((prevError) => ({
+          ...prevError,
+          userName: "",
+        }));
+      }
+    }
+
+    if (data === "email") {
+      if (value.trim() === "") {
+        setError((prevError) => ({
+          ...prevError,
+          email: "Email is required",
+        }));
+      } else if (!validator.isEmail(value)) {
+        setError((prevError) => ({
+          ...prevError,
+          email: "Please enter a valid email address",
+        }));
+      } else {
+        setError((prevError) => ({
+          ...prevError,
+          email: "",
+        }));
+      }
+    }
+  };
+
+  // handle update profile
+  const handleUpdateProfile = async () => {
+    try {
+      const config = {
+        headers: {
+          "Content-type": "application/json",
+          Authorization: "Bearer " + state?.user?.token,
+        },
+      };
+
+      const messageError = {
+        userName: "",
+        email: "",
+        phone: "",
+        photo: "",
+      };
+
+      if (form.user_name.trim() === "") {
+        messageError.userName = "Username is required";
+      }
+
+      if (form.email.trim() === "") {
+        messageError.email = "Email is required";
+      }
+
+      if (messageError.userName === "" && messageError.email === "") {
+        const body = JSON.stringify(form);
+
+        const response = await API.patch(`/user/${id}`, body, config);
+        console.log(response.data.status);
+        if (response?.data?.status === 200) {
+          alert("Profile has been updated");
+          refetchProfile();
+          setModalVisible(false);
+        }
+      } else {
+        setError(messageError);
+      }
+    } catch (err) {
+      console.log(err);
+    }
+  };
+
+  return (
+    <SafeAreaView style={styles.containerDetailUser}>
+      {profileLoading ? (
+        <ActivityIndicator style={styles.loadingProfile} />
+      ) : (
+        <View style={styles.containerProfile}>
+          <Box style={styles.contentProfile}>
+            <Menu
+              w="190"
+              trigger={(triggerProps) => {
+                return (
+                  <Pressable {...triggerProps} style={styles.hamburger}>
+                    <Image
+                      source={require("../assets/hamburger.png")}
+                      style={styles.imageHamburger}
+                      alt="hamburger"
+                    />
+                  </Pressable>
+                );
+              }}
+            >
+              <TouchableOpacity
+                style={styles.buttonOpenModal}
+                onPress={() => setModalVisible(true)}
+              >
+                <Text style={styles.textOpenModal}>Update profile</Text>
+              </TouchableOpacity>
+            </Menu>
+            <Box style={styles.subContentProfile}>
+              <Box style={styles.contentUserName}>
+                <Text style={styles.userNameProfile}>{profile?.userName}</Text>
+              </Box>
+              <Box style={styles.contentPhotoProfile}>
+                {profile?.photo &&
+                profile?.photo !==
+                  "http://localhost:5000/uploads/photo/null" ? (
+                  <Image
+                    source={profile?.photo}
+                    style={styles.photoProfile}
+                    alt="photo"
+                  />
+                ) : (
+                  <Image
+                    source={require("../assets/saitama.png")}
+                    style={styles.photoProfile}
+                    alt="photo"
+                  />
+                )}
+              </Box>
+            </Box>
+
+            <Box style={styles.contentDataProfile}>
+              <Box style={styles.subContentDataProfile}>
+                <Text style={styles.textKey}>Name : </Text>
+                <Text style={styles.textValue}>{profile?.userName}</Text>
+              </Box>
+              <Box style={styles.subContentDataProfile}>
+                <Text style={styles.textKey}>Email : </Text>
+                <Text style={styles.textValue}>{profile?.email}</Text>
+              </Box>
+              <Box style={styles.subContentDataProfile}>
+                <Text style={styles.textKey}>Phone : </Text>
+                <Text style={styles.textValue}>{profile?.phone}</Text>
+              </Box>
+            </Box>
+
+            {/* Modal */}
+            <View style={styles.centeredView}>
+              <Modal
+                animationType="slide"
+                transparent={true}
+                visible={modalVisible}
+                onRequestClose={() => {
+                  Alert.alert("Modal has been closed.");
+                  setModalVisible(!modalVisible);
+                }}
+              >
+                <View style={styles.centeredView}>
+                  <View style={styles.modalView}>
+                    <Box style={styles.contentInputProfile}>
+                      <TextInput
+                        style={styles.textInputProfile}
+                        placeholder="Username..."
+                        onChangeText={(value) =>
+                          handleChange("user_name", value)
+                        }
+                        value={form.user_name}
+                      />
+                      {error.userName && (
+                        <Text style={styles.errorProfile}>
+                          {error.userName}
+                        </Text>
+                      )}
+                    </Box>
+
+                    <Box style={styles.contentInputProfile}>
+                      <TextInput
+                        style={styles.textInputProfile}
+                        placeholder="Email..."
+                        onChangeText={(value) => handleChange("email", value)}
+                        value={form.email}
+                      />
+                      {error.email ? (
+                        <Text style={styles.errorProfile}>{error.email}</Text>
+                      ) : (
+                        ""
+                      )}
+                    </Box>
+
+                    <Box style={styles.contentInputProfile}>
+                      <TextInput
+                        style={styles.textInputProfile}
+                        placeholder="Phone..."
+                        onChangeText={(value) => handleChange("phone", value)}
+                        value={form.phone}
+                      />
+                      {error.phone && (
+                        <Text style={styles.errorProfile}>{error.phone}</Text>
+                      )}
+                    </Box>
+
+                    <Box style={styles.contentInputProfile}>
+                      <TouchableOpacity
+                        style={styles.choosePhotoButton}
+                        onPress={handleImagePicker}
+                      >
+                        <Text style={styles.choosePhotoText}>Choose Photo</Text>
+                      </TouchableOpacity>
+                      {form.photo ? (
+                        <Image
+                          source={{ uri: form.photo }}
+                          style={styles.selectedPhoto}
+                        />
+                      ) : null}
+                      {error.photo && (
+                        <Text style={styles.errorProfile}>{error.photo}</Text>
+                      )}
+                    </Box>
+
+                    <Box style={styles.containerBtnUpdateClose}>
+                      <TouchableOpacity
+                        style={[styles.btnUpdate, styles.btnCancel]}
+                        onPress={handleUpdateProfile}
+                      >
+                        <Text style={styles.textBtnUpdateClose}>Update</Text>
+                      </TouchableOpacity>
+
+                      <TouchableOpacity
+                        style={[styles.btnUpdate, styles.btnCancel]}
+                        onPress={() => setModalVisible(!modalVisible)}
+                      >
+                        <Text style={styles.textBtnUpdateClose}>Cancel</Text>
+                      </TouchableOpacity>
+                    </Box>
+                  </View>
+                </View>
+              </Modal>
+            </View>
+          </Box>
+        </View>
+      )}
+    </SafeAreaView>
+  );
 };
 
 const styles = StyleSheet.create({
-  container: {
-    height: "100%",
+  containerDetailUser: {
+    flex: 1,
+  },
+  loadingProfile: {
+    flex: 1,
+  },
+  containerProfile: {
+    flex: 1,
     backgroundColor: "white",
   },
+  contentProfile: {
+    width: "100%",
+    flex: 1,
+  },
   hamburger: {
+    width: 40,
+    height: 40,
     position: "absolute",
+    right: 10,
     display: "flex",
     justifyContent: "center",
-    right: 20,
-    height: 40,
-    zIndex: 100,
+    alignItems: "center",
+    zIndex: 10,
   },
-  profileContainer: {
-    width: "100%",
+  imageHamburger: {
+    padding: 10,
   },
-  contentProfile: {
+  buttonOpenModal: {
+    width: 160,
+    alignSelf: "center",
+    backgroundColor: "#00FCD9",
+    borderRadius: 15,
+    padding: 10,
+  },
+  textOpenModal: {
+    color: "white",
+    fontWeight: "bold",
+    textAlign: "center",
+  },
+  subContentProfile: {
     width: "100%",
     height: 120,
     display: "flex",
     flexDirection: "column",
-    alignItems: "flex-start",
     justifyContent: "center",
+    alignItems: "flex-start",
     backgroundColor: "#40FEE4",
   },
-  contentName: {
+  contentUserName: {
     width: "100%",
+    marginTop: 80,
     display: "flex",
     flexDirection: "row",
     justifyContent: "center",
-    marginTop: 80,
   },
-  firstName: {
+  userNameProfile: {
     fontSize: 22,
     fontWeight: "bold",
-    color: "white",
-    alignSelf: "center",
-    margin: 5,
+    color: "whitesmoke",
   },
-  contentPhoto: {
+  contentPhotoProfile: {
     width: 80,
     height: 80,
     position: "relative",
     left: 20,
     borderRadius: 40,
-    backgroundColor: "black",
     overflow: "hidden",
-    backgroundColor: "#87cefa",
+    borderColor: "grey",
+    borderWidth: 1,
+  },
+  photoProfile: {
+    width: "100%",
+    height: "100%",
   },
   contentDataProfile: {
     width: "90%",
-    alignSelf: "center",
     marginTop: 70,
+    alignSelf: "center",
   },
   subContentDataProfile: {
+    marginBottom: 15,
     display: "flex",
     flexDirection: "row",
-    marginBottom: 15,
-    borderColor: "white",
-    borderBottomColor: "#a9a9a9",
+    paddingVertical: 5,
     borderWidth: 2,
+    borderTopColor: "white",
+    borderLeftColor: "white",
+    borderRightColor: "white",
+    borderBottomColor: "#A9A9A9",
   },
   textKey: {
     fontSize: 14,
     fontWeight: "700",
   },
-  textvalue: {
+  textValue: {
     fontSize: 14,
     fontWeight: "500",
-    color: "#a9a9a9",
-  },
-  // Modal
-  contentModalProfile: {
-    width: "50%",
-    height: 100,
-    display: "flex",
-    flexDirection: "column",
-    justifyContent: "center",
-    alignItems: "center",
-    marginTop: 50,
+    color: "#A9A9A9",
   },
   centeredView: {
     width: "80%",
@@ -124,53 +459,67 @@ const styles = StyleSheet.create({
     shadowRadius: 4,
     elevation: 5,
   },
-  button: {
-    width: 160,
-    alignSelf: "center",
-    borderRadius: 15,
-    padding: 10,
-    marginHorizontal: 5,
-    elevation: 2,
-  },
-  buttonOpen: {
-    backgroundColor: "#00FCD9",
-  },
-  buttonClose: {
-    backgroundColor: "#00FCD9",
-  },
-  buttonModal: {
-    width: 80,
-    borderRadius: 10,
-    marginTop: 10,
-    padding: 10,
-    marginHorizontal: 5,
-    elevation: 2,
-    backgroundColor: "#00FCD9",
-  },
-  textStyle: {
-    color: "white",
-    fontWeight: "bold",
-    textAlign: "center",
-  },
-  modalText: {
-    marginBottom: 15,
-    textAlign: "center",
-  },
-  textInput: {
+  contentInputProfile: {
     width: "100%",
-    height: 50,
-    paddingLeft: 10,
-    marginBottom: 10,
+  },
+  textInputProfile: {
+    width: "100%",
     borderWidth: 2,
-    borderColor: "white",
-    borderBottomColor: "#00FCD9",
+    borderTopColor: "white",
+    borderLeftColor: "white",
+    borderRightColor: "white",
+    borderBottomColor: "#A9A9A9",
   },
-  btn: {
+  errorProfile: {
     width: "100%",
+    height: 20,
+    alignSelf: "center",
+    fontSize: 11,
+    color: "red",
+  },
+  containerBtnUpdateClose: {
+    width: "100%",
+    marginTop: 20,
     display: "flex",
     flexDirection: "row",
     justifyContent: "flex-end",
-    marginTop: 20,
+  },
+  btnUpdate: {
+    width: 80,
+    marginHorizontal: 5,
+    display: "flex",
+    alignItems: "center",
+    padding: 10,
+    borderRadius: 10,
+    elevation: 2,
+    backgroundColor: "#00FCD9",
+  },
+  btnCancel: {
+    backgroundColor: "#00FCD9",
+  },
+  textBtnUpdateClose: {
+    color: "white",
+    fontWeight: "800",
+  },
+
+  // -------------
+  choosePhotoButton: {
+    width: "100%",
+    backgroundColor: "#00FCD9",
+    borderRadius: 10,
+    padding: 10,
+    alignItems: "center",
+    marginBottom: 10,
+  },
+  choosePhotoText: {
+    color: "white",
+    fontWeight: "bold",
+  },
+  selectedPhoto: {
+    width: "100%",
+    height: 100,
+    borderRadius: 10,
+    marginTop: 10,
   },
 });
 

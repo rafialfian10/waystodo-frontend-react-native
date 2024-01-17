@@ -57,13 +57,13 @@ const Login = ({ navigation }) => {
       };
 
       if (form.email === "") {
-        messageError.email = "Email must be filled out";
+        messageError.email = "Email is required";
       } else {
         messageError.email = "";
       }
 
       if (form.password === "") {
-        messageError.password = "Password must be filled out";
+        messageError.password = "Password is required";
       } else {
         messageError.password = "";
       }

@@ -1,75 +1,304 @@
-// import { Text, Box, Button, HStack } from 'native-base';
-import { StyleSheet, TextInput, SafeAreaView, ScrollView } from "react-native";
-import React, { useState } from "react";
+// components react native
+import {
+  StyleSheet,
+  TextInput,
+  Text,
+  Alert,
+  SafeAreaView,
+  TouchableOpacity,
+  ScrollView,
+} from "react-native";
+import { useState, useContext } from "react";
 import { useQuery } from "react-query";
+
+// components native base
+import { Box, Select, CheckIcon, HStack } from "native-base";
+
+// components
+import { UserContext } from "./Context/UserContext";
 
 // api
 import { API } from "./Config/api";
+// ----------------------------------------------
 
 const AddCategory = ({ navigation }) => {
+  // dispatch
+  const [state, dispatch] = useContext(UserContext);
 
-  return <></>;
+  // state form
+  const [form, setForm] = useState({
+    user_id: state?.user?.id,
+    category_name: "",
+    bg_color: "",
+  });
+
+  const [error, setError] = useState({
+    categoryName: "",
+    bgColor: "",
+  });
+
+  // get categories user
+  let { data: categoriesUser, refetch: refetchCategoriesUser } = useQuery(
+    "categoriesCaches",
+    async () => {
+      const response = await API.get(`/categories-user`);
+      return response.data.data;
+    }
+  );
+
+  // handle change
+  const handleChange = (data, value) => {
+    setForm((prevForm) => ({ ...prevForm, [data]: value }));
+    
+    if (data === "category_name") {
+      setError((prevError) => ({ ...prevError, categoryName: value.trim() === "" ? "Category is required" : "" }));
+    }
+
+    if (data === "bg_color") {
+      setError((prevError) => ({ ...prevError, bgColor: value.trim() === "" ? "Color is required" : "" }));
+    }
+  };
+
+  // handle submit
+  const handleSubmit = async () => {
+    try {
+      const config = {
+        headers: {
+          "Content-type": "application/json",
+          Authorization: "Bearer " + state?.user?.token,
+        },
+      };
+
+      const messageError = {
+        categoryName: form.category_name === "" ? "Category is required" : "",
+        bgColor: form.bg_color === "" ? "Color is required" : "",
+      };
+
+      if (!messageError.categoryName && !messageError.bgColor) {
+        const body = JSON.stringify(form);
+
+        const response = await API.post("/category", body, config);
+        if (response.data.status === 201) {
+          alert("Category has been added");
+          refetchCategoriesUser();
+          setForm({
+            user_id: state?.user?.id,
+            category_name: "",
+            bg_color: "",
+          });
+          navigation.navigate("AddCategory");
+        }
+      } else {
+        setError(messageError);
+      }
+    } catch (err) {
+      console.log(err);
+    }
+  };
+
+  // handle delete
+  const handleDelete = async (id) => {
+    try {
+      const config = {
+        headers: {
+          "Content-type": "application/json",
+          Authorization: "Bearer " + state?.user?.token,
+        },
+      };
+
+      const response = await API.delete(`/category/${id}`, config);
+
+      if (response?.status === 200) {
+        alert("Category has been deleted");
+        refetchCategoriesUser();
+      }
+    } catch (err) {
+      console.log(err);
+    }
+  };
+
+  // colors
+  const colorOptions = [
+    { label: "Red", value: "#FFA0A0" },
+    { label: "Green", value: "#A0FFA0" },
+    { label: "Blue", value: "#A0A0FF" },
+    { label: "Yellow", value: "#FFFFA0" },
+    { label: "Purple", value: "#FFA0FF" },
+    { label: "Cyan", value: "#A0FFFF" },
+    { label: "Pink", value: "#FFC0CB" },
+    { label: "Lime", value: "#DFFF00" },
+    { label: "Sky Blue", value: "#87CEEB" },
+    { label: "Lavender", value: "#E6E6FA" },
+  ];
+
+  return (
+    <SafeAreaView style={styles.containerAddCategory}>
+      <ScrollView>
+        <Box style={styles.categoryContainer}>
+          <Text style={styles.titleCategory}>Add Category</Text>
+          <Box>
+            <TextInput
+              style={styles.textInputCategory}
+              placeholder="Category"
+              onChangeText={(value) => handleChange("category_name", value)}
+              value={form.category_name}
+            />
+          </Box>
+          {error.categoryName && (
+            <Text style={styles.errorCategory}>{error.categoryName}</Text>
+          )}
+          <Box style={styles.containerSelectCategory}>
+            <Select
+              selectedValue={form.bg_color}
+              onValueChange={(value) => handleChange("bg_color", value)}
+              style={styles.selectCategory}
+              _selectedItem={{
+                bg: "#7AC1E4",
+                endIcon: <CheckIcon size="5" />,
+              }}
+              placeholder="Select color"
+            >
+              {colorOptions.map((color, index) => (
+                <Select.Item
+                  key={index}
+                  label={color.label}
+                  value={color.value}
+                />
+              ))}
+            </Select>
+          </Box>
+          {error.bgColor && (
+            <Text style={styles.errorCategory}>{error.bgColor}</Text>
+          )}
+          <TouchableOpacity
+            style={styles.buttonCategory}
+            onPress={handleSubmit}
+          >
+            <Text style={styles.textBtnCategory}>Add category</Text>
+          </TouchableOpacity>
+
+          <Text style={styles.titleCategory}>List Category</Text>
+          <HStack style={styles.containerCategory}>
+            {categoriesUser?.map((category, i) => {
+              return (
+                <TouchableOpacity
+                  key={i}
+                  onLongPress={() => {
+                    Alert.alert("Delete Category", `Are you sure?`, [
+                      {
+                        text: "Cancel",
+                        style: "cancel",
+                      },
+                      {
+                        text: "Delete",
+                        onPress: () => handleDelete(category.id),
+                      },
+                    ]);
+                  }}
+                >
+                  <Box
+                    key={i}
+                    style={{
+                      ...styles.contentCategory,
+                      backgroundColor: category?.bgColor,
+                    }}
+                  >
+                    <Text style={styles.listCategory}>
+                      {category?.categoryName}
+                    </Text>
+                  </Box>
+                </TouchableOpacity>
+              );
+            })}
+          </HStack>
+        </Box>
+      </ScrollView>
+    </SafeAreaView>
+  );
 };
 
 const styles = StyleSheet.create({
-  container: {
+  containerAddCategory: {
     flex: 1,
-    justifyContent: "center",
-    paddingHorizontal: 10,
   },
-  countContainer: {
-    alignItems: "center",
-    padding: 10,
+  categoryContainer: {
+    width: "100%",
   },
-  title: {
-    paddingHorizontal: 40,
-    paddingVertical: 5,
-    fontSize: 25,
-    fontWeight: "bold",
-    marginTop: 70,
+  titleCategory: {
+    width: "80%",
+    marginTop: 50,
     marginBottom: 20,
-  },
-  textInput: {
     alignSelf: "center",
-    width: "80%",
-    height: 50,
-    backgroundColor: "#dcdcdc",
-    borderRadius: 5,
-    paddingLeft: 20,
-    marginBottom: 10,
-    justifyContent: "center",
-  },
-  button: {
-    alignSelf: "center",
-    backgroundColor: "#FF5555",
-    padding: 10,
-    borderRadius: 5,
-    marginTop: 20,
-    width: "80%",
-    height: 50,
-  },
-  text: {
-    display: "flex",
-    alignItems: "center",
-    color: "white",
+    fontSize: 25,
     fontWeight: "800",
   },
-  listCategory: {
+  textInputCategory: {
+    width: "80%",
+    height: 50,
+    alignSelf: "center",
+    paddingHorizontal: 15,
+    borderRadius: 5,
+    backgroundColor: "#dcdcdc",
+  },
+  containerSelectCategory: {
+    width: "80%",
+    alignSelf: "center",
+    backgroundColor: "#dcdcdc",
+  },
+  selectCategory: {
+    height: 50,
+    fontSize: 14,
+    color: "grey",
+    borderRadius: 5,
+  },
+  errorCategory: {
+    width: "80%",
+    marginBottom: 15,
+    alignSelf: "center",
+    fontSize: 11,
+    color: "red",
+  },
+  buttonCategory: {
+    width: "80%",
+    height: 50,
+    marginTop: 20,
+    alignSelf: "center",
+    borderRadius: 5,
+    backgroundColor: "#FF5555",
+  },
+  textBtnCategory: {
+    height: "100%",
+    textAlign: "center",
+    textAlignVertical: "center",
+    fontWeight: "800",
+    color: "white",
+  },
+  containerCategory: {
     width: "80%",
     display: "flex",
     flexDirection: "row",
-    flexWrap: "wrap",
-    alignSelf: "center",
     justifyContent: "flex-start",
+    alignSelf: "center",
+    flexWrap: "wrap",
+    rowGap: 5,
+    columnGap: 3,
   },
-  studyStatus: {
+  contentCategory: {
+    height: 30,
+    borderRadius: 5,
+    display: "flex",
+    alignItems: "center",
+    justifyContent: "center",
+  },
+  listCategory: {
     width: "100%",
+    paddingHorizontal: 15,
+    borderRadius: 5,
     textAlign: "center",
-    lineHeight: 15,
-    color: "white",
+    textAlignVertical: "center",
     fontSize: 11,
     fontWeight: "800",
-    borderRadius: 5,
+    color: "whitesmoke",
   },
 });
 

@@ -1,7 +1,14 @@
 // components react native
 import { useState, useEffect, useContext } from "react";
 import { useQuery } from "react-query";
-import { StyleSheet, TextInput, SafeAreaView, ScrollView } from "react-native";
+import {
+  StyleSheet,
+  TextInput,
+  Alert,
+  SafeAreaView,
+  ScrollView,
+  TouchableOpacity,
+} from "react-native";
 import { DateTimePickerAndroid } from "@react-native-community/datetimepicker";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import moment from "moment";
@@ -13,6 +20,7 @@ import {
   Image,
   Button,
   Select,
+  CheckIcon,
   Menu,
   Pressable,
   Checkbox,
@@ -29,38 +37,28 @@ const ListTodo = ({ navigation }) => {
   // dispatch
   const [state, dispatch] = useContext(UserContext);
 
-  // state search & checklist
+  // state categories
+  const [categories, setCategories] = useState([]);
+
+  // state search & checked
   const [search, setSearch] = useState("");
-  const [checklist, setChecklist] = useState(false);
+  const [checked, setChecked] = useState(false);
 
   // state category status for filter
   const [status, setStatus] = useState(false);
   const [category, setCategory] = useState("");
 
-  // state todos & categories
-  const [todos, setTodos] = useState([]);
-  const [categories, setCategories] = useState([]);
-
   // get user
-  let { data: user } = useQuery("userCache", async () => {
+  let { data: user, refetch: refetchUser } = useQuery("userCache", async () => {
     const response = await API.get(`/user/${state?.user?.id}`);
     return response?.data?.data;
   });
 
-  // get todos
-  let { data: allTodos, refetch: refetchAllTodos } = useQuery(
-    "todosCaches",
-    async () => {
-      const response = await API.get(`/todos`);
-      setTodos(response?.data?.data);
-    }
-  );
-
   // get categories
-  let { data: allCategories, refetch: refetchAllCategories } = useQuery(
-    "categoriesCache",
+  let { data: categoriesUser, refetch: refetchCategoriesUser } = useQuery(
+    "categoriesUserCach, catee",
     async () => {
-      const response = await API.get(`/categories`);
+      const response = await API.get(`/categories-user`);
       setCategories(response?.data?.data);
     }
   );
@@ -70,35 +68,68 @@ const ListTodo = ({ navigation }) => {
     setSearch(value);
   };
 
-  // handle check 
-  const handleCheck = async (id, item) => {
+  // handle checked
+  const handleChecked = async (id, todo) => {
     try {
       const config = {
         headers: {
           "Content-type": "application/json",
+          Authorization: "Bearer " + state?.user?.token,
         },
       };
 
-      // Mengubah nilai item?.checklist menjadi kebalikan nilainya
-      const updatedChecklist = !item?.checklist;
-      console.log("data", updatedChecklist);
+      // Mengubah nilai todo?.isDone menjadi kebalikan nilainya
+      const updatedChecklist = !todo?.isDone;
+      // console.log("checked", updatedChecklist);
 
       const body = {
-        checklist: updatedChecklist,
+        is_done: updatedChecklist,
       };
 
       const response = await API.patch(`/todo/${id}`, body, config);
-      if (response) {
+      if (response.data.status === 200) {
         alert(
           updatedChecklist
             ? "Category has been checked"
             : "Category has been unchecked"
         );
-        setChecklist(updatedChecklist);
+        setChecked(updatedChecklist);
+        refetchUser();
       }
     } catch (err) {
       console.log(err);
     }
+  };
+
+  // handle delete
+  const handleDelete = async (id) => {
+    try {
+      const config = {
+        headers: {
+          "Content-type": "application/json",
+          Authorization: "Bearer " + state?.user?.token,
+        },
+      };
+
+      const response = await API.delete(`/todo/${id}`, config);
+      if (response?.status === 200) {
+        alert("Todo has been deleted");
+        refetchUser();
+      }
+    } catch (err) {
+      console.log(err);
+    }
+  };
+
+  // handle logout
+  const handleLogout = async () => {
+    await AsyncStorage.removeItem("token");
+    dispatch({
+      type: "LOGOUT",
+      payload: {},
+    });
+    navigation.navigate("Index");
+    alert("Logout successfully");
   };
 
   // state date
@@ -108,7 +139,6 @@ const ListTodo = ({ navigation }) => {
     const currentDate = selectedDate || date;
     setDate(currentDate);
     const formattedDate = moment(currentDate).format("YYYY-MM-DD");
-    // console.log("Formatted Date:", formattedDate);
   };
 
   const showMode = (currentMode) => {
@@ -124,46 +154,43 @@ const ListTodo = ({ navigation }) => {
     showMode("date");
   };
 
-  // handle logout
-  const handleLogout = async () => {
-    await AsyncStorage.removeItem("token");
-    dispatch({
-      type: "LOGOUT",
-      payload: {},
-    });
-    navigation.navigate("Index");
-    alert("Logout successfully");
-  };
-
   useEffect(() => {
-    refetchAllTodos();
-    refetchAllCategories();
-  }, []);
+    refetchUser();
+  }, [checked]);
 
   return (
-    <SafeAreaView>
+    <SafeAreaView style={styles.containerListTodo}>
       {/* profile */}
       <Box style={styles.contentProfile1}>
         <Box style={styles.contentProfile2}>
           <Text style={styles.textUserName}>{user?.userName}</Text>
-          <Text style={styles.lists}>{todos?.length} Lists</Text>
+          <Text style={styles.lists}>{user?.todos?.length} Lists</Text>
         </Box>
         <Menu
           w="190"
           trigger={(triggerProps) => {
             return (
               <Pressable {...triggerProps}>
-                <Image
-                  source={require("../assets/saitama.png")}
-                  style={styles.photo}
-                  alt=""
-                />
+                {user?.photo &&
+                user?.photo !== "http://localhost:5000/uploads/photo/null" ? (
+                  <Image
+                    source={user?.photo}
+                    style={styles.photo}
+                    alt="photo"
+                  />
+                ) : (
+                  <Image
+                    source={require("../assets/saitama.png")}
+                    style={styles.photo}
+                    alt="photo"
+                  />
+                )}
               </Pressable>
             );
           }}
         >
           <Menu.Item
-            onPress={() => navigation.navigate("Profile", { id: user?._id })}
+            onPress={() => navigation.navigate("Profile", { id: user?.id })}
           >
             Profile
           </Menu.Item>
@@ -225,13 +252,16 @@ const ListTodo = ({ navigation }) => {
             {/* filter category */}
             <Box style={styles.subContentFilter}>
               <Select
-                style={{ fontSize: 10, height: 45 }}
-                _selectedItem={{ bg: "teal.200" }}
-                placeholder="Category"
                 selectedValue={category}
                 onValueChange={(itemValue) => {
                   setCategory(itemValue);
                 }}
+                style={{ fontSize: 10, height: 45 }}
+                _selectedItem={{
+                  bg: "#7AC1E4",
+                  endIcon: <CheckIcon size="5" />,
+                }}
+                placeholder="Category"
               >
                 {categories?.map((item) => {
                   return (
@@ -248,12 +278,16 @@ const ListTodo = ({ navigation }) => {
             {/* filter status */}
             <Box style={styles.subContentFilter}>
               <Select
-                style={{ fontSize: 10, height: 45 }}
                 selectedValue={status}
-                placeholder="Status"
                 onValueChange={(itemValue) => {
                   setStatus(itemValue);
                 }}
+                style={{ fontSize: 10, height: 45 }}
+                _selectedItem={{
+                  bg: "#7AC1E4",
+                  endIcon: <CheckIcon size="5" />,
+                }}
+                placeholder="Status"
               >
                 <Select.Item label="Checked" value="true" />
                 <Select.Item label="Unchecked" value="false" />
@@ -262,163 +296,94 @@ const ListTodo = ({ navigation }) => {
           </Box>
 
           {/* todos */}
-          {todos
-            ?.filter((itemSearch) => {
+          {user?.todos
+            ?.filter((todoSearch) => {
               if (search == "") {
-                return itemSearch;
+                return todoSearch;
               } else if (
-                itemSearch.title
+                todoSearch?.title
                   .toLowerCase()
                   .includes(search.toLocaleLowerCase())
               ) {
-                return itemSearch;
+                return todoSearch;
               }
             })
-            .map((item, i) => {
+            .map((todo, i) => {
               return (
-                <Box
-                  style={{
-                    ...styles.containerTodos,
-                    backgroundColor: item?.bgColor,
+                <TouchableOpacity
+                  key={i}
+                  onLongPress={() => {
+                    Alert.alert("Delete Todo", `Are you sure?`, [
+                      {
+                        text: "Cancel",
+                        style: "cancel",
+                      },
+                      {
+                        text: "Delete",
+                        onPress: () => handleDelete(todo?.id),
+                      },
+                    ]);
                   }}
-                  key={item?.id}
                 >
-                  <Box style={styles.contentTodo}>
-                    <Text
-                      style={styles.todoTitle}
-                      onPress={() =>
-                        navigation.push("DetailList", {
-                          todos: todos[i],
-                          bgColor: item?.bgColor[i],
-                        })
-                      }
-                    >
-                      {item?.title}
-                    </Text>
-                    <Text style={styles.todoDesc}>{item?.description}</Text>
-                    <Box style={styles.contentDate}>
-                      <Image
-                        style={styles.imageDate}
-                        source={require("../assets/calender.png")}
-                        alt="calender"
-                      />
-                      <Text style={styles.todoDate}>{moment(item?.date).format("YYYY-MM-DD")}</Text>
+                  <Box
+                    style={{
+                      ...styles.containerTodos,
+                      backgroundColor: todo?.bgColor,
+                    }}
+                    key={i}
+                  >
+                    <Box style={styles.contentTodo}>
+                      <Text
+                        style={styles.todoTitle}
+                        onPress={() =>
+                          navigation.push("DetailList", {
+                            id: todo?.id,
+                            todo: todo,
+                          })
+                        }
+                      >
+                        {todo?.title}
+                      </Text>
+                      <Text style={styles.todoDesc}>{todo?.description}</Text>
+                      <Box style={styles.contentDate}>
+                        <Image
+                          style={styles.imageDate}
+                          source={require("../assets/calender.png")}
+                          alt="calender"
+                        />
+                        <Text style={styles.todoDate}>
+                          {moment(todo?.date).format("YYYY-MM-DD")}
+                        </Text>
+                      </Box>
+                    </Box>
+
+                    <Box style={styles.containerCategories}>
+                      <Box style={styles.contentCheckbox}>
+                        <Box
+                          style={{
+                            ...styles.contentCategory,
+                            backgroundColor: todo?.category?.bgColor,
+                          }}
+                        >
+                          <Text style={styles.categoryTitle}>
+                            {todo?.category?.categoryName}
+                          </Text>
+                        </Box>
+                        <Box style={styles.checkbox}>
+                          <Checkbox
+                            padding={3}
+                            rounded={"full"}
+                            size="lg"
+                            colorScheme="green"
+                            aria-label="Label Checkbox"
+                            isChecked={todo?.isDone}
+                            onPress={() => handleChecked(todo?.id, todo)}
+                          />
+                        </Box>
+                      </Box>
                     </Box>
                   </Box>
-
-                  <Box style={styles.contentCategories} key={item?.id}>
-                    {/* {item.category?.map((cat) => {
-                      {
-                        if (cat?.title === "study") {
-                          return (
-                            <Box style={styles.contentCheckbox} key={cat?.id}>
-                              <Box
-                                style={{
-                                  backgroundColor: "#81C8FF",
-                                  borderRadius: 5,
-                                  height: 35,
-                                  marginBottom: 10,
-                                }}
-                              >
-                                <Text style={styles.categoryTitle}>
-                                  {cat?.title}
-                                </Text>
-                              </Box>
-                              <Checkbox
-                                padding={3}
-                                rounded={"full"}
-                                size="lg"
-                                colorScheme="green"
-                                aria-label="Label Checkbox"
-                                value={item?.checklist}
-                                onPress={() => handleCheck(item?.id)}
-                              />
-                            </Box>
-                          );
-                        } else if (cat?.title === "home work") {
-                          return (
-                            <Box style={styles.contentCheckbox} key={cat?.id}>
-                              <Box
-                                style={{
-                                  backgroundColor: "#FF8181",
-                                  borderRadius: 5,
-                                  height: 35,
-                                  marginBottom: 10,
-                                }}
-                              >
-                                <Text style={styles.categoryTitle}>
-                                  {cat?.title}
-                                </Text>
-                              </Box>
-                              <Checkbox
-                                padding={3}
-                                rounded={"full"}
-                                size="lg"
-                                colorScheme="green"
-                                aria-label="Label Checkbox"
-                                value={item?.checklist}
-                                onPress={() => handleCheck(item?.id)}
-                              />
-                            </Box>
-                          );
-                        } else if (cat?.title === "workout") {
-                          return (
-                            <Box style={styles.contentCheckbox} key={cat?.id}>
-                              <Box
-                                style={{
-                                  backgroundColor: "#FFB681",
-                                  borderRadius: 5,
-                                  height: 35,
-                                  marginBottom: 10,
-                                }}
-                              >
-                                <Text style={styles.categoryTitle}>
-                                  {cat?.title}
-                                </Text>
-                              </Box>
-                              <Checkbox
-                                padding={3}
-                                rounded={"full"}
-                                size="lg"
-                                colorScheme="green"
-                                aria-label="Label Checkbox"
-                                value={item?.checklist}
-                                onPress={() => handleCheck(item?.id)}
-                              />
-                            </Box>
-                          );
-                        } else {
-                          return (
-                            <Box style={styles.contentCheckbox} key={cat?.id}>
-                              <Box
-                                style={{
-                                  height: 35,
-                                  marginBottom: 10,
-                                  backgroundColor: randomColors(),
-                                  borderRadius: 5,
-                                }}
-                              >
-                                <Text style={styles.categoryTitle}>
-                                  {cat?.title}
-                                </Text>
-                              </Box>
-                              <Checkbox
-                                padding={3}
-                                rounded={"full"}
-                                size="lg"
-                                colorScheme="green"
-                                aria-label="Label Checkbox"
-                                isChecked={item?.checklist}
-                                value={item?.checklist}
-                                onPress={() => handleCheck(item?._id, item)}
-                              />
-                            </Box>
-                          );
-                        }
-                      }
-                    })} */}
-                  </Box>
-                </Box>
+                </TouchableOpacity>
               );
             })}
         </Box>
@@ -428,18 +393,18 @@ const ListTodo = ({ navigation }) => {
 };
 
 const styles = StyleSheet.create({
+  containerListTodo: {
+    flex: 0,
+  },
   contentProfile1: {
-    width: "95%",
+    width: "90%",
     height: 80,
+    marginVertical: 40,
     display: "flex",
-    alignSelf: "center",
-    alignItems: "center",
-    alignContent: "center",
     flexDirection: "row",
     justifyContent: "space-between",
-    marginTop: 40,
-    marginBottom: 40,
-    padding: 10,
+    alignItems: "center",
+    alignSelf: "center",
   },
   contentProfile2: {
     height: 80,
@@ -449,10 +414,10 @@ const styles = StyleSheet.create({
   textUserName: {
     display: "flex",
     alignItems: "center",
-    color: "#565656",
     paddingVertical: 10,
-    fontWeight: "800",
     fontSize: 25,
+    fontWeight: "800",
+    color: "#565656",
   },
   lists: {
     color: "#8a8989",
@@ -461,93 +426,102 @@ const styles = StyleSheet.create({
     width: 60,
     height: 60,
     borderRadius: 50,
+    borderColor: "grey",
+    borderWidth: 1,
   },
   textSearch: {
     width: "95%",
     height: 50,
-    backgroundColor: "#dcdcdc",
-    borderRadius: 5,
-    alignSelf: "center",
     marginBottom: 10,
+    alignSelf: "center",
     paddingLeft: 10,
+    borderRadius: 5,
     fontSize: 11,
+    backgroundColor: "#dcdcdc",
   },
   containerSearchFilter: {
+    marginBottom: 200,
     justifyContent: "center",
     paddingHorizontal: 10,
-    marginBottom: 200,
   },
   contentFilter: {
     width: "95%",
+    marginBottom: 40,
     display: "flex",
     flexDirection: "row",
     justifyContent: "space-between",
     alignSelf: "center",
-    marginBottom: 40,
   },
   subContentFilter: {
-    alignSelf: "center",
     width: "32%",
     height: 50,
-    backgroundColor: "#dcdcdc",
-    borderRadius: 5,
     marginBottom: 10,
+    alignSelf: "center",
+    borderRadius: 5,
     color: "#999999",
+    backgroundColor: "#dcdcdc",
   },
   containerTodos: {
     width: "95%",
-    paddingVertical: 10,
-    paddingHorizontal: 10,
     marginBottom: 20,
-    borderRadius: 5,
     display: "flex",
     flexDirection: "row",
     justifyContent: "space-evenly",
     alignSelf: "center",
+    padding: 10,
+    borderRadius: 5,
   },
   contentTodo: {
-    width: "60%",
+    width: "70%",
   },
   todoTitle: {
-    fontWeight: "800",
     fontSize: 15,
+    fontWeight: "800",
   },
   todoDesc: {
-    fontSize: 12,
     marginBottom: 10,
+    fontSize: 12,
   },
   contentDate: {
     display: "flex",
     flexDirection: "row",
+    alignItems: "center",
   },
   imageDate: {
-    marginRight: 10,
     width: 20,
     height: 20,
+    marginRight: 10,
   },
   todoDate: {
     fontSize: 12,
-    marginBottom: 10,
   },
-  contentCategories: {
-    width: "40%",
-    display: "flex",
-    flexDirection: "column",
-    alignItems: "center",
-    justifyContent: "center",
+  containerCategories: {
+    width: "30%",
   },
   contentCheckbox: {
+    width: "100%",
     display: "flex",
     justifyContent: "center",
-    alignItems: "center",
+    alignItems: "flex-end",
+  },
+  contentCategory: {
+    width: "100%",
+    marginBottom: 10,
+    borderRadius: 5,
   },
   categoryTitle: {
-    paddingVertical: 5,
-    paddingHorizontal: 10,
-    color: "white",
+    padding: 0,
+    height: 30,
+    borderRadius: 5,
+    textAlign: "center",
     fontSize: 12,
     fontWeight: "800",
-    borderRadius: 5,
+    color: "white",
+  },
+  checkbox: {
+    width: "100%",
+    display: "flex",
+    alignItems: "center",
   },
 });
 

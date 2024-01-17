@@ -1,39 +1,58 @@
-// import { Text, Box, Button, Image } from 'native-base';
-import { StyleSheet, SafeAreaView, ScrollView } from "react-native";
+// components react native
+import { StyleSheet, View, Text, SafeAreaView, ScrollView } from "react-native";
+import moment from "moment";
+// --------------------------------------------------------------
 
 const DetailList = ({ route, navigation }) => {
-  
+  const { id, todo } = route.params;
 
-  return <></>;
+  return (
+    <SafeAreaView
+      style={{
+        ...styles.containerDetail,
+        backgroundColor: todo?.bgColor,
+      }}
+    >
+      <ScrollView>
+        <View style={styles.contentDetail}>
+          <Text style={styles.titleDetailList}>{todo?.title}</Text>
+          <Text style={styles.dateDetailList}>
+            {moment(todo?.date).format("YYYY-MM-DD")}
+          </Text>
+          <Text style={styles.descDetailList}>{todo?.description}</Text>
+        </View>
+      </ScrollView>
+    </SafeAreaView>
+  );
 };
 
 const styles = StyleSheet.create({
-  container: {
+  containerDetail: {
     flex: 1,
-    justifyContent: "center",
-    paddingHorizontal: 10,
-  },
-  countContainer: {
-    alignItems: "center",
-    padding: 10,
+    padding: 20,
   },
   contentDetail: {
-    margin: 30,
-    padding: 20,
-    paddingBottom: 100,
+    width: "100%",
+    marginTop: 30,
+    flex: 1,
+    padding: 10,
     borderRadius: 5,
+    borderWidth: 2,
+    borderColor: "whitesmoke"
   },
-  title: {
-    paddingVertical: 5,
+  titleDetailList: {
     fontSize: 25,
-    fontWeight: "bold",
-    marginTop: 50,
+    fontWeight: "800",
     color: "black",
   },
-  date: {
-    marginBottom: 50,
+  dateDetailList: {
+    marginBottom: 20,
     paddingVertical: 5,
-    fontWeight: "bold",
+    color: "black",
+  },
+  descDetailList: {
+    textAlign: "justify",
+    fontSize: 16,
     color: "black",
   },
 });
