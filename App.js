@@ -1,9 +1,7 @@
-// components react native
+// components react
 import { NavigationContainer } from "@react-navigation/native";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { StatusBar } from "expo-status-bar";
-import { SSRProvider } from "@react-aria/ssr";
-// SSRProvider to fixed In React 18, SSRProvider is not necessary and is a noop. You can remove it from your app
 
 // components native base
 import { NativeBaseProvider, extendTheme } from "native-base";
@@ -40,11 +38,9 @@ export default function App() {
       <UserContextProvider>
         <StatusBar style="auto" />
         <NavigationContainer>
-          <SSRProvider>
-            <NativeBaseProvider theme={theme}>
-              <Containers />
-            </NativeBaseProvider>
-          </SSRProvider>
+          <NativeBaseProvider theme={theme}>
+            <Containers />
+          </NativeBaseProvider>
         </NavigationContainer>
       </UserContextProvider>
     </QueryClientProvider>
