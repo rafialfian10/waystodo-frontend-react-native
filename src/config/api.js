@@ -1,9 +1,12 @@
 // axios
 import axios from "axios";
+
+// env
+import { API_HOST } from "@env";
 // --------------------------------------------------
 
 export const API = axios.create({
-  baseURL: "http://192.168.248.106:5000/api/v1",
+  baseURL: API_HOST,
 });
 
 export const setAuthToken = (token) => {

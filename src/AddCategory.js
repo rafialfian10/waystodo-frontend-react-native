@@ -140,6 +140,7 @@ const AddCategory = ({ navigation }) => {
             <TextInput
               style={styles.textInputCategory}
               placeholder="Category"
+              maxLength={15}
               onChangeText={(value) => handleChange("category_name", value)}
               value={form.category_name}
             />
@@ -238,12 +239,12 @@ const styles = StyleSheet.create({
     alignSelf: "center",
     paddingHorizontal: 15,
     borderRadius: 5,
-    backgroundColor: "#dcdcdc",
+    backgroundColor: "#DCDCDC",
   },
   containerSelectCategory: {
     width: "80%",
     alignSelf: "center",
-    backgroundColor: "#dcdcdc",
+    backgroundColor: "#DCDCDC",
   },
   selectCategory: {
     height: 50,

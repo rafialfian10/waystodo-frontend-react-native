@@ -1,5 +1,12 @@
 // components react native
-import { StyleSheet, Text, Image, TouchableOpacity, SafeAreaView } from "react-native";
+import {
+  StyleSheet,
+  Text,
+  Image,
+  View,
+  TouchableOpacity,
+  SafeAreaView,
+} from "react-native";
 
 // components native base
 // import { Text, Image } from "native-base";
@@ -7,71 +14,93 @@ import { StyleSheet, Text, Image, TouchableOpacity, SafeAreaView } from "react-n
 
 const Dashboard = ({ navigation }) => {
   return (
-    <SafeAreaView>
-      <Image
-        source={require("../assets/logo-waystodo.png")}
-        style={styles.logo}
-        alt="logo-waystodo"
-      />
-      <Image
-        source={require("../assets/text-waystodo.png")}
-        style={{ marginBottom: 50, alignSelf: "center", marginBottom: 20 }}
-        alt="waystodo"
-      />
-      <Text style={styles.desc}>
-        Write your activity and finish your activity. Fast, Simple and Easy to
-        use
-      </Text>
-      <TouchableOpacity
-        style={styles.buttonLogin}
-        onPress={() => navigation.navigate("Login")}
-      >
-        <Text style={styles.textBtn}>Login</Text>
-      </TouchableOpacity>
+    <SafeAreaView style={styles.containerDashboard}>
+      <View style={styles.contentDashboard}>
+        <Image
+          source={require("../assets/logo-waystodo.png")}
+          style={styles.logo}
+          alt="logo-waystodo"
+        />
+        <Image
+          source={require("../assets/text-waystodo.png")}
+          style={styles.textLogo}
+          alt="waystodo"
+        />
+        <Text style={styles.desc}>
+          Write your activity and finish your activity. Fast, Simple and Easy to
+          use
+        </Text>
+        <TouchableOpacity
+          style={styles.buttonLogin}
+          onPress={() => navigation.navigate("Login")}
+        >
+          <Text style={styles.textBtn}>Login</Text>
+        </TouchableOpacity>
 
-      <TouchableOpacity
-        style={styles.buttonRegister}
-        onPress={() => navigation.navigate("Register")}
-      >
-        <Text style={styles.textBtn}>Register</Text>
-      </TouchableOpacity>
+        <TouchableOpacity
+          style={styles.buttonRegister}
+          onPress={() => navigation.navigate("Register")}
+        >
+          <Text style={styles.textBtn}>Register</Text>
+        </TouchableOpacity>
+      </View>
     </SafeAreaView>
   );
 };
 
 const styles = StyleSheet.create({
+  containerDashboard: {
+    flex: 1,
+  },
+  contentDashboard: {
+    width: "100%",
+    height: "100%",
+    marginBottom: 30,
+    alignSelf: "center",
+    backgroundColor: "whitesmoke",
+  },
   logo: {
     marginTop: 70,
     alignSelf: "center",
+    borderColor: "black",
+    borderWidth: 1,
+  },
+  textLogo: {
+    marginBottom: 50,
+    marginBottom: 20,
+    alignSelf: "center",
+    borderColor: "black",
+    borderWidth: 1,
   },
   desc: {
     width: 300,
     alignSelf: "center",
     textAlign: "center",
     marginBottom: 100,
+    borderColor: "black",
+    borderWidth: 1,
   },
   buttonLogin: {
-    width: 320,
-    alignSelf: "center",
-    backgroundColor: "#FF5555",
-    padding: 10,
-    borderRadius: 5,
-    marginTop: 20,
+    width: "80%",
     height: 50,
+    marginVertical: 20,
+    alignSelf: "center",
+    borderRadius: 5,
+    backgroundColor: "#FF5555",
   },
   buttonRegister: {
-    width: 320,
-    alignSelf: "center",
-    backgroundColor: "#c0c0c0",
-    padding: 10,
-    borderRadius: 5,
-    marginTop: 20,
+    width: "80%",
     height: 50,
+    alignSelf: "center",
+    borderRadius: 5,
+    backgroundColor: "#C0C0C0",
   },
   textBtn: {
-    color: "white",
-    fontWeight: "800",
+    height: "100%",
     textAlign: "center",
+    textAlignVertical: "center",
+    fontWeight: "800",
+    color: "white",
   },
 });
 

@@ -1,4 +1,7 @@
 // components react native
+import React, { useState, useContext } from "react";
+import AsyncStorage from "@react-native-async-storage/async-storage";
+import { Ionicons } from "@expo/vector-icons";
 import {
   SafeAreaView,
   StyleSheet,
@@ -6,12 +9,11 @@ import {
   TextInput,
   Image,
   TouchableOpacity,
+  ScrollView,
 } from "react-native";
-import React, { useState, useContext } from "react";
-import AsyncStorage from "@react-native-async-storage/async-storage";
 
-// components native base
-// import { Text, Image } from 'native-base';
+// component native base
+import { Box } from "native-base";
 
 // components
 import { UserContext } from "./Context/UserContext";
@@ -35,12 +37,34 @@ const Login = ({ navigation }) => {
     password: "",
   });
 
+  // state show password
+  const [showPassword, setShowPassword] = useState(false);
+
+  // handle toggle password
+  const handleTogglePassword = () => {
+    setShowPassword(!showPassword);
+  };
+
   // handle change
-  const handleChange = (name, value) => {
+  const handleChange = (data, value) => {
     setForm({
       ...form,
-      [name]: value,
+      [data]: value,
     });
+
+    if (data === "email") {
+      setError((prevError) => ({
+        ...prevError,
+        email: value.trim() === "" ? "Email is required" : "",
+      }));
+    }
+
+    if (data === "password") {
+      setError((prevError) => ({
+        ...prevError,
+        password: value.trim() === "" ? "Password is required" : "",
+      }));
+    }
   };
 
   const handleSubmit = async () => {
@@ -52,38 +76,33 @@ const Login = ({ navigation }) => {
       };
 
       const messageError = {
-        email: "",
-        password: "",
+        email: form.email === "" ? "Email is required" : "",
+        password: form.password === "" ? "Password is required" : "",
       };
 
-      if (form.email === "") {
-        messageError.email = "Email is required";
-      } else {
-        messageError.email = "";
-      }
-
-      if (form.password === "") {
-        messageError.password = "Password is required";
-      } else {
-        messageError.password = "";
-      }
-
-      if (messageError.email === "" && messageError.password === "") {
+      if (!messageError.email && !messageError.password) {
         const body = JSON.stringify(form);
 
-        const response = await API.post("/login", body, config);
-
-        if (response.data.status === 200) {
-          if (response.data.data.token) {
-            await AsyncStorage.setItem("token", response.data.data.token);
-            setAuthToken(response.data.data.token);
+        try {
+          const response = await API.post("/login", body, config);
+          if (response.data.status === 200) {
+            if (response.data.data.token) {
+              await AsyncStorage.setItem("token", response.data.data.token);
+              setAuthToken(response.data.data.token);
+            }
+            dispatch({
+              type: "LOGIN_SUCCESS",
+              payload: response.data.data,
+            });
+            alert("Login successfully");
+          } 
+        } catch(error) {
+          if (error.response && error.response.status === 400) {
+            alert(error.response.data.message);
+          } else {
+            throw error;
           }
-          dispatch({
-            type: "LOGIN_SUCCESS",
-            payload: response.data.data,
-          });
-          alert("Login successfully");
-        } 
+        }
       } else {
         setError(messageError);
       }
@@ -92,92 +111,133 @@ const Login = ({ navigation }) => {
       alert("Login failed (unexpected error)");
     }
   };
+
   return (
-    <SafeAreaView>
-      <Image
-        source={require("../assets/login.png")}
-        style={styles.imageLogin}
-        alt="login"
-      />
-      <Text style={styles.titleLogin}>Login</Text>
-      <TextInput
-        style={styles.textInputLogin}
-        placeholder="Email"
-        onChangeText={(value) => handleChange("email", value)}
-        value={form.email}
-      />
-       {error.email && (
-        <Text style={{ width: "75%", alignSelf: "center", color: "red" }}>
-          {error.email}
-        </Text>
-      )}
-      <TextInput
-        style={styles.textInputLogin}
-        placeholder="Password"
-        secureTextEntry={true}
-        onChangeText={(value) => handleChange("password", value)}
-        value={form.password}
-      />
-       {error.password && (
-        <Text style={{ width: "75%", alignSelf: "center", color: "red" }}>
-          {error.password}
-        </Text>
-      )}
-      <TouchableOpacity style={styles.buttonLogin}>
-        <Text style={styles.textBtnLogin} onPress={handleSubmit}>
-          Login
-        </Text>
-      </TouchableOpacity>
-      <Text style={styles.textLogin}>
-        New Users?
-        <Text
-          onPress={() => navigation.navigate("Register")}
-          style={styles.linkLogin}
-        > Register
-        </Text>
-      </Text>
+    <SafeAreaView style={styles.containerLogin}>
+      <ScrollView>
+        <Box style={styles.contentLogin}>
+          <Image
+            source={require("../assets/login.png")}
+            style={styles.imageLogin}
+            alt="login"
+          />
+          <Text style={styles.titleLogin}>Login</Text>
+          <Box style={styles.contentTextInputLogin}>
+            <TextInput
+              style={styles.textInputLogin}
+              placeholder="Email"
+              onChangeText={(value) => handleChange("email", value)}
+              value={form.email}
+            />
+            {error.email && (
+              <Text style={styles.errorLogin}>{error.email}</Text>
+            )}
+          </Box>
+          <Box style={styles.contentTextInputLogin}>
+            <TextInput
+              style={styles.textInputLogin}
+              secureTextEntry={!showPassword}
+              placeholder="Password"
+              onChangeText={(value) => handleChange("password", value)}
+              value={form.password}
+            />
+            <TouchableOpacity
+              style={styles.togglePasswordButton}
+              onPress={handleTogglePassword}
+            >
+              <Ionicons
+                name={showPassword ? "md-eye" : "md-eye-off"}
+                size={20}
+                color="black"
+              />
+            </TouchableOpacity>
+            {error.password && (
+              <Text style={styles.errorLogin}>{error.password}</Text>
+            )}
+          </Box>
+          <TouchableOpacity style={styles.buttonLogin}>
+            <Text style={styles.textBtnLogin} onPress={handleSubmit}>
+              Login
+            </Text>
+          </TouchableOpacity>
+          <Text style={styles.textLogin}>
+            New Users?
+            <Text
+              onPress={() => navigation.navigate("Register")}
+              style={styles.linkLogin}
+            >
+              {" "}
+              Register
+            </Text>
+          </Text>
+        </Box>
+      </ScrollView>
     </SafeAreaView>
   );
 };
 
 const styles = StyleSheet.create({
+  containerLogin: {
+    flex: 1,
+  },
+  contentLogin: {
+    width: "100%",
+    marginBottom: 30,
+    alignSelf: "center",
+    backgroundColor: "whitesmoke",
+  },
   imageLogin: {
+    marginTop: 50,
+    marginBottom: 50,
     justifyContent: "center",
-    marginTop: 100,
-    marginBottom: 70,
     alignSelf: "center",
   },
   titleLogin: {
-    paddingHorizontal: 40,
-    paddingVertical: 5,
-    fontSize: 25,
-    fontWeight: "bold",
+    width: "80%",
     marginBottom: 20,
+    alignSelf: "center",
+    fontSize: 25,
+    fontWeight: "800",
+  },
+  contentTextInputLogin: {
+    width: " 80%",
+    alignSelf: "center",
   },
   textInputLogin: {
-    alignSelf: "center",
-    width: 300,
+    width: "100%",
     height: 50,
-    backgroundColor: "#dcdcdc",
-    borderRadius: 5,
-    paddingLeft: 20,
-    marginBottom: 10,
     justifyContent: "center",
+    alignSelf: "center",
+    paddingHorizontal: 20,
+    borderRadius: 5,
+    backgroundColor: "#DCDCDC",
+  },
+  togglePasswordButton: {
+    position: "absolute",
+    right: 10,
+    top: 15,
+  },
+  errorLogin: {
+    width: "100%",
+    marginBottom: 15,
+    alignSelf: "center",
+    fontSize: 11,
+    color: "red",
   },
   buttonLogin: {
-    alignSelf: "center",
-    backgroundColor: "#FF5555",
-    padding: 10,
-    borderRadius: 5,
-    marginTop: 20,
-    width: 300,
+    width: "80%",
     height: 50,
-    marginBottom: 10,
+    marginVertical: 20,
+    alignSelf: "center",
+    borderRadius: 5,
+    backgroundColor: "#FF5555",
   },
   textBtnLogin: {
-    color: "white",
-    fontWeight: "800",
+    height: "100%",
     textAlign: "center",
+    textAlignVertical: "center",
+    fontWeight: "800",
+    color: "white",
   },
   textLogin: {
     textAlign: "center",

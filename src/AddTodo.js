@@ -179,7 +179,7 @@ const AddTodo = ({ navigation }) => {
     <SafeAreaView style={styles.containerAddList}>
       <ScrollView>
         <Box style={styles.todoContainer}>
-          <Text style={styles.titleTodo}>Add List</Text>
+          <Text style={styles.titleTodo}>Add Todo</Text>
           <Box>
             <TextInput
               style={styles.textInputTodo}
@@ -294,12 +294,12 @@ const styles = StyleSheet.create({
     alignSelf: "center",
     paddingLeft: 20,
     borderRadius: 5,
-    backgroundColor: "#dcdcdc",
+    backgroundColor: "#DCDCDC",
   },
   containerSelectCategory: {
     width: "80%",
     alignSelf: "center",
-    backgroundColor: "#dcdcdc",
+    backgroundColor: "#DCDCDC",
   },
   selectCategory: {
     height: 50,
@@ -324,7 +324,7 @@ const styles = StyleSheet.create({
     alignSelf: "center",
     borderRadius: 5,
     color: "red",
-    backgroundColor: "#dcdcdc",
+    backgroundColor: "#DCDCDC",
   },
   dateButton: {
     width: "100%",
@@ -350,7 +350,7 @@ const styles = StyleSheet.create({
   containerDescription: {
     width: "80%",
     alignSelf: "center",
-    backgroundColor: "#dcdcdc",
+    backgroundColor: "#DCDCDC",
   },
   contentDescription: {
     width: "100%",

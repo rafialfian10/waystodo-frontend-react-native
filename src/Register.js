@@ -1,6 +1,7 @@
 // componenets react native
 import { useState } from "react";
 import validator from "validator";
+import { Ionicons } from "@expo/vector-icons";
 import {
   StyleSheet,
   Image,
@@ -34,6 +35,14 @@ const Register = ({ navigation }) => {
     password: "",
   });
 
+  // state show password
+  const [showPassword, setShowPassword] = useState(false);
+
+  // handle toggle password
+  const handleTogglePassword = () => {
+    setShowPassword(!showPassword);
+  };
+
   // handle change
   const handleChange = (data, value) => {
     setForm({
@@ -42,10 +51,7 @@ const Register = ({ navigation }) => {
     });
 
     if (data === "user_name") {
-      setError((prevError) => ({
-        ...prevError,
-        userName: value.trim() === "" ? "Username is required" : "",
-      }));
+      setError((prevError) => ({ ...prevError, userName: value.trim() === "" ? "Username is required" : "" }));
     }
 
     if (data === "email") {
@@ -68,10 +74,16 @@ const Register = ({ navigation }) => {
     }
 
     if (data === "password") {
-      setError((prevError) => ({
-        ...prevError,
-        password: value.trim() === "" ? "Password is required" : "",
-      }));
+      setError((prevError) => ({ ...prevError, password: value.trim() === "" ? "Password is required" : "" }));
+  
+      const passwordRegex = /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d.)(?=.*[@$!%*?&.])[A-Za-z\d@$!%*?&.]{8,}$/;
+  
+      if (value.trim() !== "" && !passwordRegex.test(value)) {
+        setError((prevError) => ({
+          ...prevError,
+          password: "Password must be at least 8 characters and include at least one uppercase letter, one lowercase letter, one digit, and one special character",
+        }));
+      }
     }
   };
 
@@ -118,16 +130,15 @@ const Register = ({ navigation }) => {
   };
 
   return (
-    <SafeAreaView>
+    <SafeAreaView style={styles.containerRegister}>
       <ScrollView>
-        <View style={styles.contentRegister}>
+        <Box style={styles.contentRegister}>
           <Image
             source={require("../assets/login.png")}
             style={styles.imageRegister}
             alt="register"
           />
           <Text style={styles.titleRegister}>Register</Text>
-
           <Box style={styles.contentTextInputRegister}>
             <TextInput
               style={styles.textInputRegister}
@@ -153,11 +164,21 @@ const Register = ({ navigation }) => {
           <Box style={styles.contentTextInputRegister}>
             <TextInput
               style={styles.textInputRegister}
-              secureTextEntry={true}
+              secureTextEntry={!showPassword}
               placeholder="Password"
               onChangeText={(value) => handleChange("password", value)}
               value={form.password}
             />
+            <TouchableOpacity
+              style={styles.togglePasswordButton}
+              onPress={handleTogglePassword}
+            >
+              <Ionicons
+                name={showPassword ? "md-eye" : "md-eye-off"}
+                size={20}
+                color="black"
+              />
+            </TouchableOpacity>
             {error.password && (
               <Text style={styles.errorRegister}>{error.password}</Text>
             )}
@@ -173,24 +194,27 @@ const Register = ({ navigation }) => {
             <Text
               onPress={() => navigation.navigate("Login")}
               style={styles.linkRegister}
-            >
-              {" "}
-              Login
+            > Login
             </Text>
           </Text>
-        </View>
+        </Box>
       </ScrollView>
     </SafeAreaView>
   );
 };
 
 const styles = StyleSheet.create({
+  containerRegister: {
+    flex: 1,
+  },
   contentRegister: {
     width: "100%",
+    marginBottom: 30,
     alignSelf: "center",
+    backgroundColor: "whitesmoke",
   },
   imageRegister: {
-    marginTop: 100,
+    marginTop: 50,
     marginBottom: 50,
     justifyContent: "center",
     alignSelf: "center",
@@ -213,7 +237,12 @@ const styles = StyleSheet.create({
     alignSelf: "center",
     paddingHorizontal: 20,
     borderRadius: 5,
-    backgroundColor: "#dcdcdc",
+    backgroundColor: "#DCDCDC",
+  },
+  togglePasswordButton: {
+    position: "absolute",
+    right: 10,
+    top: 15,
   },
   errorRegister: {
     width: "100%",

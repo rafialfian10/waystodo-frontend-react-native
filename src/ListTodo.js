@@ -168,6 +168,7 @@ const ListTodo = ({ navigation }) => {
         </Box>
         <Menu
           w="190"
+          style={styles.contentBtnProfile}
           trigger={(triggerProps) => {
             return (
               <Pressable {...triggerProps}>
@@ -189,12 +190,15 @@ const ListTodo = ({ navigation }) => {
             );
           }}
         >
-          <Menu.Item
+          <TouchableOpacity
             onPress={() => navigation.navigate("Profile", { id: user?.id })}
+            style={{ ...styles.BtnProfile, activeBackgroundColor: "#47A9DA" }}
           >
-            Profile
-          </Menu.Item>
-          <Menu.Item onPress={handleLogout}>Logout</Menu.Item>
+            <Text style={styles.textBtn}>Profile</Text>
+          </TouchableOpacity>
+          <TouchableOpacity onPress={handleLogout} style={styles.BtnProfile}>
+          <Text style={styles.textBtn}>Logout</Text>
+          </TouchableOpacity>
         </Menu>
       </Box>
 
@@ -309,6 +313,15 @@ const ListTodo = ({ navigation }) => {
               }
             })
             .map((todo, i) => {
+              const titleLength =
+                todo?.title.length > 20
+                  ? todo?.title.slice(0, 20) + "..."
+                  : todo?.title;
+              const descriptionLength =
+                todo?.description.length > 35
+                  ? todo?.description.slice(0, 35) + "..."
+                  : todo?.description;
+
               return (
                 <TouchableOpacity
                   key={i}
@@ -342,9 +355,9 @@ const ListTodo = ({ navigation }) => {
                           })
                         }
                       >
-                        {todo?.title}
+                        {titleLength}
                       </Text>
-                      <Text style={styles.todoDesc}>{todo?.description}</Text>
+                      <Text style={styles.todoDesc}>{descriptionLength}</Text>
                       <Box style={styles.contentDate}>
                         <Image
                           style={styles.imageDate}
@@ -411,6 +424,30 @@ const styles = StyleSheet.create({
     display: "flex",
     justifyContent: "center",
   },
+  contentBtnProfile: {
+    top: 5,
+    right: 10,
+    backgroundColor: "#FFFFFF",
+    borderRadius: 10,
+  },
+  BtnProfile: {
+    width: "100%",
+    height: 40,
+    alignSelf: "center",
+    paddingHorizontal:20,
+  },
+  textBtn: {
+    width: "100%",
+    padding: 5,
+    textAlign: "center",
+    color: "grey",
+    fontWeight: "800",
+    borderWidth: 1,
+    borderTopColor: "transparent",
+    borderLeftColor: "transparent",
+    borderRightColor: "transparent",
+    borderBottomColor: "grey"
+  },
   textUserName: {
     display: "flex",
     alignItems: "center",
@@ -437,7 +474,7 @@ const styles = StyleSheet.create({
     paddingLeft: 10,
     borderRadius: 5,
     fontSize: 11,
-    backgroundColor: "#dcdcdc",
+    backgroundColor: "#DCDCDC",
   },
   containerSearchFilter: {
     marginBottom: 200,
@@ -459,7 +496,7 @@ const styles = StyleSheet.create({
     alignSelf: "center",
     borderRadius: 5,
     color: "#999999",
-    backgroundColor: "#dcdcdc",
+    backgroundColor: "#DCDCDC",
   },
   containerTodos: {
     width: "95%",

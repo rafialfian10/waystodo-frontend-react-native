@@ -2,6 +2,7 @@
 import { useContext, useState, useEffect } from "react";
 import { useQuery } from "react-query";
 import { useRoute } from "@react-navigation/native";
+import LinearGradient from "react-native-linear-gradient";
 // import ImagePicker from "react-native-image-picker";
 import validator from "validator";
 import {
@@ -157,7 +158,6 @@ const Profile = () => {
         const body = JSON.stringify(form);
 
         const response = await API.patch(`/user/${id}`, body, config);
-        console.log(response.data.status);
         if (response?.data?.status === 200) {
           alert("Profile has been updated");
           refetchProfile();
@@ -180,6 +180,7 @@ const Profile = () => {
           <Box style={styles.contentProfile}>
             <Menu
               w="190"
+              style={styles.contentBtnOpenModal}
               trigger={(triggerProps) => {
                 return (
                   <Pressable {...triggerProps} style={styles.hamburger}>
@@ -193,13 +194,16 @@ const Profile = () => {
               }}
             >
               <TouchableOpacity
-                style={styles.buttonOpenModal}
+                style={styles.btnOpenModal}
                 onPress={() => setModalVisible(true)}
               >
                 <Text style={styles.textOpenModal}>Update profile</Text>
               </TouchableOpacity>
             </Menu>
-            <Box style={styles.subContentProfile}>
+            <Box
+              colors={["#335C81", "#FFFFFF"]}
+              style={styles.subContentProfile}
+            >
               <Box style={styles.contentUserName}>
                 <Text style={styles.userNameProfile}>{profile?.userName}</Text>
               </Box>
@@ -283,6 +287,7 @@ const Profile = () => {
                     <Box style={styles.contentInputProfile}>
                       <TextInput
                         style={styles.textInputProfile}
+                        keyboardType="numeric"
                         placeholder="Phone..."
                         onChangeText={(value) => handleChange("phone", value)}
                         value={form.phone}
@@ -312,14 +317,14 @@ const Profile = () => {
 
                     <Box style={styles.containerBtnUpdateClose}>
                       <TouchableOpacity
-                        style={[styles.btnUpdate, styles.btnCancel]}
+                        style={styles.btnUpdate}
                         onPress={handleUpdateProfile}
                       >
                         <Text style={styles.textBtnUpdateClose}>Update</Text>
                       </TouchableOpacity>
 
                       <TouchableOpacity
-                        style={[styles.btnUpdate, styles.btnCancel]}
+                        style={styles.btnCancel}
                         onPress={() => setModalVisible(!modalVisible)}
                       >
                         <Text style={styles.textBtnUpdateClose}>Cancel</Text>
@@ -345,7 +350,7 @@ const styles = StyleSheet.create({
   },
   containerProfile: {
     flex: 1,
-    backgroundColor: "white",
+    backgroundColor: "#FFFFFF",
   },
   contentProfile: {
     width: "100%",
@@ -364,16 +369,20 @@ const styles = StyleSheet.create({
   imageHamburger: {
     padding: 10,
   },
-  buttonOpenModal: {
-    width: 160,
+  contentBtnOpenModal: {
+    right: 10,
+    backgroundColor: "#FFFFFF",
+    borderRadius: 10,
+  },
+  btnOpenModal: {
     alignSelf: "center",
-    backgroundColor: "#00FCD9",
-    borderRadius: 15,
+    borderRadius: 5,
     padding: 10,
   },
   textOpenModal: {
-    color: "white",
-    fontWeight: "bold",
+    borderRadius: 10,
+    color: "grey",
+    fontWeight: "800",
     textAlign: "center",
   },
   subContentProfile: {
@@ -383,7 +392,6 @@ const styles = StyleSheet.create({
     flexDirection: "column",
     justifyContent: "center",
     alignItems: "flex-start",
-    backgroundColor: "#40FEE4",
   },
   contentUserName: {
     width: "100%",
@@ -446,7 +454,7 @@ const styles = StyleSheet.create({
   modalView: {
     width: "100%",
     margin: 20,
-    backgroundColor: "white",
+    backgroundColor: "#FFFFFF",
     borderRadius: 20,
     padding: 35,
     alignItems: "flex-end",
@@ -492,10 +500,16 @@ const styles = StyleSheet.create({
     padding: 10,
     borderRadius: 10,
     elevation: 2,
-    backgroundColor: "#00FCD9",
+    backgroundColor: "#47A9DA",
   },
   btnCancel: {
-    backgroundColor: "#00FCD9",
+    width: 80,
+    display: "flex",
+    alignItems: "center",
+    padding: 10,
+    borderRadius: 10,
+    elevation: 2,
+    backgroundColor: "#F94449",
   },
   textBtnUpdateClose: {
     color: "white",
@@ -505,7 +519,7 @@ const styles = StyleSheet.create({
   // -------------
   choosePhotoButton: {
     width: "100%",
-    backgroundColor: "#00FCD9",
+    backgroundColor: "#47A9DA",
     borderRadius: 10,
     padding: 10,
     alignItems: "center",

@@ -36,7 +36,7 @@ function MyTab() {
       screenOptions={({ route }) => ({
         headerMode: "screen",
         headerTintColor: "white",
-        headerStyle: { backgroundColor: theme.colors.brand["300"] },
+        headerStyle: { backgroundColor: theme.colors.brand["400"] },
         tabBarIcon: ({ focused, color, size }) => {
           let iconName;
           if (route.name === "ListTodo") {
@@ -62,6 +62,8 @@ function MyTab() {
 const Containers = () => {
   // dispatch
   const [state, dispatch] = useContext(UserContext);
+
+  const theme = useTheme();
 
   //state login
   const [login, setLogin] = useState(false);
@@ -121,12 +123,20 @@ const Containers = () => {
           <Stack.Screen
             name="DetailList"
             component={DetailList}
-            options={{ headerShown: true }}
+            options={{
+              headerShown: true,
+              headerStyle: { backgroundColor: theme.colors.brand["400"] },
+              headerTintColor: "whitesmoke",
+            }}
           />
           <Stack.Screen
             name="Profile"
             component={Profile}
-            options={{ headerShown: true }}
+            options={{
+              headerShown: true,
+              headerStyle: { backgroundColor: theme.colors.brand["400"] },
+              headerTintColor: "whitesmoke",
+            }}
           />
         </Stack.Navigator>
       ) : (
@@ -139,12 +149,20 @@ const Containers = () => {
           <Stack.Screen
             name="Register"
             component={Register}
-            options={{ headerShown: false }}
+            options={{
+              headerShown: true,
+              headerStyle: { backgroundColor: "whitesmoke" },
+              headerTitle: ""
+            }}
           />
           <Stack.Screen
             name="Login"
             component={Login}
-            options={{ headerShown: false }}
+            options={{
+              headerShown: true,
+              headerStyle: { backgroundColor: "whitesmoke" },
+              headerTitle: ""
+            }}
           />
         </Stack.Navigator>
       )}
