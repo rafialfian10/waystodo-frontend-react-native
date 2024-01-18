@@ -1,4 +1,4 @@
-// components react native
+// components react
 import { StyleSheet, View, Text, SafeAreaView, ScrollView } from "react-native";
 import moment from "moment";
 // --------------------------------------------------------------

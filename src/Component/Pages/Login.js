@@ -1,36 +1,38 @@
-// componenets react native
-import { useState } from "react";
-import validator from "validator";
+// components react
+import { useState, useContext } from "react";
 import { Ionicons } from "@expo/vector-icons";
+import AsyncStorage from "@react-native-async-storage/async-storage";
 import {
-  StyleSheet,
-  Image,
-  TextInput,
-  Text,
-  TouchableOpacity,
   SafeAreaView,
-  View,
+  StyleSheet,
+  Text,
+  TextInput,
+  Image,
+  TouchableOpacity,
   ScrollView,
 } from "react-native";
 
-// components native base
+// component native base
 import { Box } from "native-base";
 
-// api
-import { API } from "./Config/api";
-// ------------------------------------------
+// components
+import { UserContext } from "../../Context/UserContext";
 
-const Register = ({ navigation }) => {
+// api
+import { API, setAuthToken } from "../../Config/api";
+// ------------------------------------------------------------
+
+const Login = ({ navigation }) => {
+  const [state, dispatch] = useContext(UserContext);
+
   // state form
   const [form, setForm] = useState({
-    user_name: "",
     email: "",
     password: "",
   });
 
   // state error
   const [error, setError] = useState({
-    userName: "",
     email: "",
     password: "",
   });
@@ -50,40 +52,18 @@ const Register = ({ navigation }) => {
       [data]: value,
     });
 
-    if (data === "user_name") {
-      setError((prevError) => ({ ...prevError, userName: value.trim() === "" ? "Username is required" : "" }));
-    }
-
     if (data === "email") {
-      if (value.trim() === "") {
-        setError((prevError) => ({
-          ...prevError,
-          email: "Email is required",
-        }));
-      } else if (!validator.isEmail(value)) {
-        setError((prevError) => ({
-          ...prevError,
-          email: "Please enter a valid email address",
-        }));
-      } else {
-        setError((prevError) => ({
-          ...prevError,
-          email: "",
-        }));
-      }
+      setError((prevError) => ({
+        ...prevError,
+        email: value.trim() === "" ? "Email is required" : "",
+      }));
     }
 
     if (data === "password") {
-      setError((prevError) => ({ ...prevError, password: value.trim() === "" ? "Password is required" : "" }));
-  
-      const passwordRegex = /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d.)(?=.*[@$!%*?&.])[A-Za-z\d@$!%*?&.]{8,}$/;
-  
-      if (value.trim() !== "" && !passwordRegex.test(value)) {
-        setError((prevError) => ({
-          ...prevError,
-          password: "Password must be at least 8 characters and include at least one uppercase letter, one lowercase letter, one digit, and one special character",
-        }));
-      }
+      setError((prevError) => ({
+        ...prevError,
+        password: value.trim() === "" ? "Password is required" : "",
+      }));
     }
   };
 
@@ -91,28 +71,30 @@ const Register = ({ navigation }) => {
     try {
       const config = {
         headers: {
-          "Content-type": "application/json",
+          "Content-Type": "application/json",
         },
       };
 
       const messageError = {
-        userName: form.user_name === "" ? "Username is required" : "",
         email: form.email === "" ? "Email is required" : "",
         password: form.password === "" ? "Password is required" : "",
       };
 
-      if (
-        !messageError.userName &&
-        !messageError.email &&
-        !messageError.password
-      ) {
+      if (!messageError.email && !messageError.password) {
         const body = JSON.stringify(form);
 
         try {
-          const response = await API.post("/register", body, config);
-          if (response?.data?.status === 200) {
-            alert("Register successfully");
-            navigation.navigate("Login");
+          const response = await API.post("/login", body, config);
+          if (response.data.status === 200) {
+            if (response.data.data.token) {
+              await AsyncStorage.setItem("token", response.data.data.token);
+              setAuthToken(response.data.data.token);
+            }
+            dispatch({
+              type: "LOGIN_SUCCESS",
+              payload: response.data.data,
+            });
+            alert("Login successfully");
           }
         } catch (error) {
           if (error.response && error.response.status === 400) {
@@ -125,45 +107,35 @@ const Register = ({ navigation }) => {
         setError(messageError);
       }
     } catch (err) {
-      console.log(err);
+      console.error("Login error:", err);
+      alert("Login failed (unexpected error)");
     }
   };
 
   return (
-    <SafeAreaView style={styles.containerRegister}>
+    <SafeAreaView style={styles.containerLogin}>
       <ScrollView>
-        <Box style={styles.contentRegister}>
+        <Box style={styles.contentLogin}>
           <Image
-            source={require("../assets/login.png")}
-            style={styles.imageRegister}
-            alt="register"
+            source={require("../../../assets/login.png")}
+            style={styles.imageLogin}
+            alt="login"
           />
-          <Text style={styles.titleRegister}>Register</Text>
-          <Box style={styles.contentTextInputRegister}>
+          <Text style={styles.titleLogin}>Login</Text>
+          <Box style={styles.contentTextInputLogin}>
             <TextInput
-              style={styles.textInputRegister}
+              style={styles.textInputLogin}
               placeholder="Email"
               onChangeText={(value) => handleChange("email", value)}
               value={form.email}
             />
             {error.email && (
-              <Text style={styles.errorRegister}>{error.email}</Text>
+              <Text style={styles.errorLogin}>{error.email}</Text>
             )}
           </Box>
-          <Box style={styles.contentTextInputRegister}>
+          <Box style={styles.contentTextInputLogin}>
             <TextInput
-              style={styles.textInputRegister}
-              placeholder="Username"
-              onChangeText={(value) => handleChange("user_name", value)}
-              value={form.user_name}
-            />
-            {error.userName && (
-              <Text style={styles.errorRegister}>{error.userName}</Text>
-            )}
-          </Box>
-          <Box style={styles.contentTextInputRegister}>
-            <TextInput
-              style={styles.textInputRegister}
+              style={styles.textInputLogin}
               secureTextEntry={!showPassword}
               placeholder="Password"
               onChangeText={(value) => handleChange("password", value)}
@@ -180,21 +152,22 @@ const Register = ({ navigation }) => {
               />
             </TouchableOpacity>
             {error.password && (
-              <Text style={styles.errorRegister}>{error.password}</Text>
+              <Text style={styles.errorLogin}>{error.password}</Text>
             )}
           </Box>
-          <TouchableOpacity
-            onPress={handleSubmit}
-            style={styles.buttonRegister}
-          >
-            <Text style={styles.textBtnRegister}>Register</Text>
+          <TouchableOpacity style={styles.buttonLogin}>
+            <Text style={styles.textBtnLogin} onPress={handleSubmit}>
+              Login
+            </Text>
           </TouchableOpacity>
-          <Text style={styles.textRegister}>
-            Joined us before?
+          <Text style={styles.textLogin}>
+            New Users?
             <Text
-              onPress={() => navigation.navigate("Login")}
-              style={styles.linkRegister}
-            > Login
+              onPress={() => navigation.navigate("Register")}
+              style={styles.linkLogin}
+            >
+              {" "}
+              Register
             </Text>
           </Text>
         </Box>
@@ -204,33 +177,33 @@ const Register = ({ navigation }) => {
 };
 
 const styles = StyleSheet.create({
-  containerRegister: {
+  containerLogin: {
     flex: 1,
   },
-  contentRegister: {
+  contentLogin: {
     width: "100%",
     marginBottom: 30,
     alignSelf: "center",
     backgroundColor: "whitesmoke",
   },
-  imageRegister: {
+  imageLogin: {
     marginTop: 50,
     marginBottom: 50,
     justifyContent: "center",
     alignSelf: "center",
   },
-  titleRegister: {
+  titleLogin: {
     width: "80%",
     marginBottom: 20,
     alignSelf: "center",
     fontSize: 25,
     fontWeight: "800",
   },
-  contentTextInputRegister: {
+  contentTextInputLogin: {
     width: " 80%",
     alignSelf: "center",
   },
-  textInputRegister: {
+  textInputLogin: {
     width: "100%",
     height: 50,
     justifyContent: "center",
@@ -244,14 +217,14 @@ const styles = StyleSheet.create({
     right: 10,
     top: 15,
   },
-  errorRegister: {
+  errorLogin: {
     width: "100%",
     marginBottom: 15,
     alignSelf: "center",
     fontSize: 11,
     color: "red",
   },
-  buttonRegister: {
+  buttonLogin: {
     width: "80%",
     height: 50,
     marginVertical: 20,
@@ -259,20 +232,20 @@ const styles = StyleSheet.create({
     borderRadius: 5,
     backgroundColor: "#FF5555",
   },
-  textBtnRegister: {
+  textBtnLogin: {
     height: "100%",
     textAlign: "center",
     textAlignVertical: "center",
     fontWeight: "800",
     color: "white",
   },
-  textRegister: {
+  textLogin: {
     textAlign: "center",
   },
-  linkRegister: {
+  linkLogin: {
     color: "#FF5555",
     fontWeight: "800",
   },
 });
 
-export default Register;
+export default Login;

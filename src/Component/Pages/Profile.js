@@ -1,6 +1,5 @@
-// components react native
+// components react
 import { useContext, useState, useEffect } from "react";
-import { useQuery } from "react-query";
 import { useRoute } from "@react-navigation/native";
 import validator from "validator";
 // import ImagePicker from "react-native-image-picker";
@@ -19,13 +18,14 @@ import {
 import { Box, Image, Menu, Pressable } from "native-base";
 
 // components
-import { UserContext } from "./Context/UserContext";
+import { UserContext } from "../../Context/UserContext";
+import { GetUser } from "../Common/Hooks/getUser";
 
 // api
-import { API } from "./Config/api";
+import { API } from "../../Config/api";
 
 // env
-import { PATH_FILE_PHOTO } from "@env";
+import { PATH_FILE } from "@env";
 // ---------------------------------------------------------------------
 
 const Profile = () => {
@@ -35,8 +35,12 @@ const Profile = () => {
   // dispatch
   const [state, dispatch] = useContext(UserContext);
 
-  // state modal
+  // data user
+  const { user, isLoading, refetchUser } = GetUser();
+
+  // state modal & new photo
   const [modalVisible, setModalVisible] = useState(false);
+  const [newPhoto, setNewPhoto] = useState();
 
   // state form
   const [form, setForm] = useState({
@@ -52,33 +56,25 @@ const Profile = () => {
     email: "",
   });
 
-  // get user
-  let {
-    data: profile,
-    isLoading: profileLoading,
-    refetch: refetchProfile,
-  } = useQuery("getDetailuserCache", async () => {
-    const response = await API.get(`/User/${id}`);
-    return response.data.data;
-  });
-
   useEffect(() => {
     setForm({
-      user_name: profile?.userName || "",
-      email: profile?.email || "",
-      phone: profile?.phone || "",
-      photo: profile?.photo || "",
+      user_name: user?.userName || "",
+      email: user?.email || "",
+      phone: user?.phone || "",
+      photo: user?.photo || "",
     });
 
-    // Ganti http://localhost:5000 dengan PATH_FILE_PHOTO
-    const updatedPhotoURL = profile?.photo.replace("http://localhost:5000", PATH_FILE_PHOTO);
+    // Ganti http://localhost:5000 dengan PATH_FILE
+    const updatedPhotoURL = user?.photo.replace(
+      "http://localhost:5000",
+      PATH_FILE
+    );
 
-    // Setel form dengan URL yang sudah diganti
-    setForm((prevForm) => ({
+    setNewPhoto((prevForm) => ({
       ...prevForm,
       photo: updatedPhotoURL,
     }));
-  }, [profile]);
+  }, [user]);
 
   // handle upload image
   const handleImagePicker = async () => {
@@ -160,7 +156,7 @@ const Profile = () => {
         const response = await API.patch(`/user/${id}`, body, config);
         if (response?.data?.status === 200) {
           alert("Profile has been updated");
-          refetchProfile();
+          refetchUser();
           setModalVisible(false);
         }
       } else {
@@ -173,10 +169,10 @@ const Profile = () => {
 
   return (
     <SafeAreaView style={styles.containerDetailUser}>
-      {profileLoading ? (
+      {isLoading ? (
         <ActivityIndicator style={styles.loadingProfile} />
       ) : (
-        <View style={styles.containerProfile}>
+        <Box style={styles.containerProfile}>
           <Box style={styles.contentProfile}>
             <Menu
               w="190"
@@ -185,7 +181,7 @@ const Profile = () => {
                 return (
                   <Pressable {...triggerProps} style={styles.hamburger}>
                     <Image
-                      source={require("../assets/hamburger.png")}
+                      source={require("../../../assets/hamburger.png")}
                       style={styles.imageHamburger}
                       alt="hamburger"
                     />
@@ -205,20 +201,19 @@ const Profile = () => {
               style={styles.subContentProfile}
             >
               <Box style={styles.contentUserName}>
-                <Text style={styles.userNameProfile}>{profile?.userName}</Text>
+                <Text style={styles.userNameProfile}>{user?.userName}</Text>
               </Box>
               <Box style={styles.contentPhotoProfile}>
-                {profile?.photo &&
-                profile?.photo !==
-                  "http://localhost:5000/uploads/photo/null" ? (
+                {user?.photo &&
+                user?.photo !== "http://localhost:5000/uploads/photo/null" ? (
                   <Image
-                    source={{ uri: form?.photo }} 
+                    source={{ uri: newPhoto?.photo }}
                     style={styles.photoProfile}
                     alt="photo"
                   />
                 ) : (
                   <Image
-                    source={require("../assets/default-photo.png")}
+                    source={require("../../../assets/default-photo.png")}
                     style={styles.photoProfile}
                     alt="default-photo"
                   />
@@ -229,19 +224,18 @@ const Profile = () => {
             <Box style={styles.contentDataProfile}>
               <Box style={styles.subContentDataProfile}>
                 <Text style={styles.textKey}>Name : </Text>
-                <Text style={styles.textValue}>{profile?.userName}</Text>
+                <Text style={styles.textValue}>{user?.userName}</Text>
               </Box>
               <Box style={styles.subContentDataProfile}>
                 <Text style={styles.textKey}>Email : </Text>
-                <Text style={styles.textValue}>{profile?.email}</Text>
+                <Text style={styles.textValue}>{user?.email}</Text>
               </Box>
               <Box style={styles.subContentDataProfile}>
                 <Text style={styles.textKey}>Phone : </Text>
-                <Text style={styles.textValue}>{profile?.phone}</Text>
+                <Text style={styles.textValue}>{user?.phone}</Text>
               </Box>
             </Box>
 
-            {/* Modal */}
             <View style={styles.centeredView}>
               <Modal
                 animationType="slide"
@@ -304,13 +298,6 @@ const Profile = () => {
                       >
                         <Text style={styles.choosePhotoText}>Choose Photo</Text>
                       </TouchableOpacity>
-                      {/* {form.photo ? (
-                        <Image
-                          source={{ uri: form.photo }}
-                          style={styles.selectedPhoto}
-                          alt="select-photo"
-                        />
-                      ) : null} */}
                       {error.photo && (
                         <Text style={styles.errorProfile}>{error.photo}</Text>
                       )}
@@ -336,7 +323,7 @@ const Profile = () => {
               </Modal>
             </View>
           </Box>
-        </View>
+        </Box>
       )}
     </SafeAreaView>
   );

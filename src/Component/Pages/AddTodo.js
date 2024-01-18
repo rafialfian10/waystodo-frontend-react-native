@@ -1,6 +1,5 @@
-// components react native
-import { useState, useEffect, useContext } from "react";
-import { useQuery } from "react-query";
+// components react
+import { useState, useContext } from "react";
 import { DateTimePickerAndroid } from "@react-native-community/datetimepicker";
 import {
   StyleSheet,
@@ -15,18 +14,21 @@ import {
 import { Box, Image, Button, TextArea, Select, CheckIcon } from "native-base";
 
 // components
-import { UserContext } from "./Context/UserContext";
+import { UserContext } from "../../Context/UserContext";
+import { GetCategoriesUser } from "../Common/Hooks/getCategoriesUser";
+import { GetUser } from "../Common/Hooks/getUser";
 
 // api
-import { API } from "./Config/api";
+import { API } from "../../Config/api";
 // -----------------------------------------------------------
 
 const AddTodo = ({ navigation }) => {
   // dispatch
   const [state, dispatch] = useContext(UserContext);
 
-  // state category
-  const [categories, setCategories] = useState();
+  // data categories & user
+  const { categoriesUser, refetchCategoriesUser } = GetCategoriesUser();
+  const { refetchUser } = GetUser();
 
   // state form & date
   const [form, setForm] = useState({
@@ -37,13 +39,6 @@ const AddTodo = ({ navigation }) => {
     bg_color: "",
     date: "",
   });
-
-  // get categories user
-  let { data: todoCategoriesUser, refetch: refetchTodoCategoriesUser } =
-    useQuery("todoCategoriesUserCache", async () => {
-      const response = await API.get(`/categories-user`);
-      setCategories(response.data.data);
-    });
 
   // state error
   const [error, setError] = useState({
@@ -59,23 +54,38 @@ const AddTodo = ({ navigation }) => {
     setForm((prevForm) => ({ ...prevForm, [data]: value }));
 
     if (data === "title") {
-      setError((prevError) => ({ ...prevError, title: value.trim() === "" ? "Title is required" : "" }));
+      setError((prevError) => ({
+        ...prevError,
+        title: value.trim() === "" ? "Title is required" : "",
+      }));
     }
 
     if (data === "category_id") {
-      setError((prevError) => ({ ...prevError, categoryId: isNaN(value) ? "Category is required" : "" }));
+      setError((prevError) => ({
+        ...prevError,
+        categoryId: isNaN(value) ? "Category is required" : "",
+      }));
     }
 
     if (data === "bg_color") {
-      setError((prevError) => ({ ...prevError, bgColor: value.trim() === "" ? "Color is required" : "" }));
+      setError((prevError) => ({
+        ...prevError,
+        bgColor: value.trim() === "" ? "Color is required" : "",
+      }));
     }
 
     if (data === "date") {
-      setError((prevError) => ({ ...prevError, date: !value ? "Date is required" : "" }));
+      setError((prevError) => ({
+        ...prevError,
+        date: !value ? "Date is required" : "",
+      }));
     }
 
     if (data === "description") {
-      setError((prevError) => ({ ...prevError, description: value.trim() === "" ? "Description is required" : "" }));
+      setError((prevError) => ({
+        ...prevError,
+        description: value.trim() === "" ? "Description is required" : "",
+      }));
     }
   };
 
@@ -97,9 +107,6 @@ const AddTodo = ({ navigation }) => {
         description: form.description === "" ? "Description is required" : "",
       };
 
-      // Set user_id in the form only if it's not already set
-      setForm({ ...form, user_id: state?.user?.id });
-
       if (
         !messageError.title &&
         !messageError.categoryId &&
@@ -112,7 +119,8 @@ const AddTodo = ({ navigation }) => {
         const response = await API.post("/todo", body, config);
         if (response?.data?.status) {
           alert("List has been added");
-          refetchTodoCategoriesUser();
+          refetchUser();
+          refetchCategoriesUser();
           setForm({
             user_id: state?.user?.id,
             title: "",
@@ -163,18 +171,6 @@ const AddTodo = ({ navigation }) => {
     { label: "Lavender", value: "#E6E6FA" },
   ];
 
-  useEffect(() => {
-    refetchTodoCategoriesUser();
-
-    // Check if user_id is not already set in the form, then set it
-    if (!form.user_id && state?.user?.id) {
-      setForm((prevForm) => ({
-        ...prevForm,
-        user_id: state.user.id,
-      }));
-    }
-  }, [state, form.user_id]);
-
   return (
     <SafeAreaView style={styles.containerAddList}>
       <ScrollView>
@@ -201,7 +197,7 @@ const AddTodo = ({ navigation }) => {
               }}
               placeholder="Select category"
             >
-              {categories?.map((category, index) => (
+              {categoriesUser?.map((category, index) => (
                 <Select.Item
                   key={index}
                   label={category.categoryName}
@@ -245,7 +241,7 @@ const AddTodo = ({ navigation }) => {
             </Text>
             <Image
               style={styles.imageDate}
-              source={require("../assets/calender.png")}
+              source={require("../../../assets/calender.png")}
               alt="calender"
             />
           </Box>

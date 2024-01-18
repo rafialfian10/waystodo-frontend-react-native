@@ -1,4 +1,4 @@
-// components react native
+// components react
 import {
   StyleSheet,
   Text,
@@ -7,9 +7,6 @@ import {
   TouchableOpacity,
   SafeAreaView,
 } from "react-native";
-
-// components native base
-// import { Text, Image } from "native-base";
 // ---------------------------------------------------------------
 
 const Dashboard = ({ navigation }) => {
@@ -17,12 +14,12 @@ const Dashboard = ({ navigation }) => {
     <SafeAreaView style={styles.containerDashboard}>
       <View style={styles.contentDashboard}>
         <Image
-          source={require("../assets/logo-waystodo.png")}
+          source={require("../../../assets/logo-waystodo.png")}
           style={styles.logo}
           alt="logo-waystodo"
         />
         <Image
-          source={require("../assets/text-waystodo.png")}
+          source={require("../../../assets/text-waystodo.png")}
           style={styles.textLogo}
           alt="waystodo"
         />

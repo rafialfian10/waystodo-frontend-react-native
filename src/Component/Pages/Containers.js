@@ -1,4 +1,4 @@
-// components react native
+// components react
 import { useState, useEffect, useContext } from "react";
 import { createStackNavigator } from "@react-navigation/stack";
 import { createBottomTabNavigator } from "@react-navigation/bottom-tabs";
@@ -17,10 +17,10 @@ import AddCategory from "./AddCategory";
 import AddTodo from "./AddTodo";
 import DetailList from "./DetailList";
 import Profile from "./Profile";
-import { UserContext } from "./Context/UserContext";
+import { UserContext } from "../../Context/UserContext";
 
 // api
-import { API, setAuthToken } from "./Config/api";
+import { API, setAuthToken } from "../../Config/api";
 // ---------------------------------------------------------
 
 //Create Bottom Tab & tag Navigation

@@ -1,4 +1,5 @@
-// components react native
+// components react
+import { useState, useContext } from "react";
 import {
   StyleSheet,
   TextInput,
@@ -8,22 +9,24 @@ import {
   TouchableOpacity,
   ScrollView,
 } from "react-native";
-import { useState, useContext } from "react";
-import { useQuery } from "react-query";
 
 // components native base
 import { Box, Select, CheckIcon, HStack } from "native-base";
 
 // components
-import { UserContext } from "./Context/UserContext";
+import { UserContext } from "../../Context/UserContext";
+import { GetCategoriesUser } from "../Common/Hooks/getCategoriesUser";
 
 // api
-import { API } from "./Config/api";
+import { API } from "../../Config/api";
 // ----------------------------------------------
 
 const AddCategory = ({ navigation }) => {
   // dispatch
   const [state, dispatch] = useContext(UserContext);
+
+  // data categories
+  const { categoriesUser, refetchCategoriesUser } = GetCategoriesUser();
 
   // state form
   const [form, setForm] = useState({
@@ -37,25 +40,22 @@ const AddCategory = ({ navigation }) => {
     bgColor: "",
   });
 
-  // get categories user
-  let { data: categoriesUser, refetch: refetchCategoriesUser } = useQuery(
-    "categoriesCaches",
-    async () => {
-      const response = await API.get(`/categories-user`);
-      return response.data.data;
-    }
-  );
-
   // handle change
   const handleChange = (data, value) => {
     setForm((prevForm) => ({ ...prevForm, [data]: value }));
-    
+
     if (data === "category_name") {
-      setError((prevError) => ({ ...prevError, categoryName: value.trim() === "" ? "Category is required" : "" }));
+      setError((prevError) => ({
+        ...prevError,
+        categoryName: value.trim() === "" ? "Category is required" : "",
+      }));
     }
 
     if (data === "bg_color") {
-      setError((prevError) => ({ ...prevError, bgColor: value.trim() === "" ? "Color is required" : "" }));
+      setError((prevError) => ({
+        ...prevError,
+        bgColor: value.trim() === "" ? "Color is required" : "",
+      }));
     }
   };
 
