@@ -62,23 +62,17 @@ const styles = StyleSheet.create({
   logo: {
     marginTop: 70,
     alignSelf: "center",
-    borderColor: "black",
-    borderWidth: 1,
   },
   textLogo: {
     marginBottom: 50,
     marginBottom: 20,
     alignSelf: "center",
-    borderColor: "black",
-    borderWidth: 1,
   },
   desc: {
     width: 300,
+    marginBottom: 100,
     alignSelf: "center",
     textAlign: "center",
-    marginBottom: 100,
-    borderColor: "black",
-    borderWidth: 1,
   },
   buttonLogin: {
     width: "80%",

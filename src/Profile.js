@@ -2,9 +2,8 @@
 import { useContext, useState, useEffect } from "react";
 import { useQuery } from "react-query";
 import { useRoute } from "@react-navigation/native";
-import LinearGradient from "react-native-linear-gradient";
-// import ImagePicker from "react-native-image-picker";
 import validator from "validator";
+// import ImagePicker from "react-native-image-picker";
 import {
   StyleSheet,
   TextInput,
@@ -24,6 +23,9 @@ import { UserContext } from "./Context/UserContext";
 
 // api
 import { API } from "./Config/api";
+
+// env
+import { PATH_FILE_PHOTO } from "@env";
 // ---------------------------------------------------------------------
 
 const Profile = () => {
@@ -48,8 +50,6 @@ const Profile = () => {
   const [error, setError] = useState({
     userName: "",
     email: "",
-    phone: "",
-    photo: "",
   });
 
   // get user
@@ -67,7 +67,17 @@ const Profile = () => {
       user_name: profile?.userName || "",
       email: profile?.email || "",
       phone: profile?.phone || "",
+      photo: profile?.photo || "",
     });
+
+    // Ganti http://localhost:5000 dengan PATH_FILE_PHOTO
+    const updatedPhotoURL = profile?.photo.replace("http://localhost:5000", PATH_FILE_PHOTO);
+
+    // Setel form dengan URL yang sudah diganti
+    setForm((prevForm) => ({
+      ...prevForm,
+      photo: updatedPhotoURL,
+    }));
   }, [profile]);
 
   // handle upload image
@@ -140,21 +150,11 @@ const Profile = () => {
       };
 
       const messageError = {
-        userName: "",
-        email: "",
-        phone: "",
-        photo: "",
+        userName: form.user_name === "" ? "Username is required" : "",
+        email: form.email === "" ? "Email is required" : "",
       };
 
-      if (form.user_name.trim() === "") {
-        messageError.userName = "Username is required";
-      }
-
-      if (form.email.trim() === "") {
-        messageError.email = "Email is required";
-      }
-
-      if (messageError.userName === "" && messageError.email === "") {
+      if (!messageError.userName && !messageError.email) {
         const body = JSON.stringify(form);
 
         const response = await API.patch(`/user/${id}`, body, config);
@@ -212,15 +212,15 @@ const Profile = () => {
                 profile?.photo !==
                   "http://localhost:5000/uploads/photo/null" ? (
                   <Image
-                    source={profile?.photo}
+                    source={{ uri: form?.photo }} 
                     style={styles.photoProfile}
                     alt="photo"
                   />
                 ) : (
                   <Image
-                    source={require("../assets/saitama.png")}
+                    source={require("../assets/default-photo.png")}
                     style={styles.photoProfile}
-                    alt="photo"
+                    alt="default-photo"
                   />
                 )}
               </Box>
@@ -297,19 +297,20 @@ const Profile = () => {
                       )}
                     </Box>
 
-                    <Box style={styles.contentInputProfile}>
+                    <Box style={styles.contentInputFileProfile}>
                       <TouchableOpacity
                         style={styles.choosePhotoButton}
                         onPress={handleImagePicker}
                       >
                         <Text style={styles.choosePhotoText}>Choose Photo</Text>
                       </TouchableOpacity>
-                      {form.photo ? (
+                      {/* {form.photo ? (
                         <Image
                           source={{ uri: form.photo }}
                           style={styles.selectedPhoto}
+                          alt="select-photo"
                         />
-                      ) : null}
+                      ) : null} */}
                       {error.photo && (
                         <Text style={styles.errorProfile}>{error.photo}</Text>
                       )}
@@ -403,21 +404,24 @@ const styles = StyleSheet.create({
   userNameProfile: {
     fontSize: 22,
     fontWeight: "bold",
-    color: "whitesmoke",
+    color: "grey",
   },
   contentPhotoProfile: {
     width: 80,
     height: 80,
     position: "relative",
     left: 20,
+    alignItems: "center",
+    padding: 2,
     borderRadius: 40,
     overflow: "hidden",
     borderColor: "grey",
-    borderWidth: 1,
+    borderWidth: 2,
   },
   photoProfile: {
     width: "100%",
     height: "100%",
+    borderRadius: 50,
   },
   contentDataProfile: {
     width: "90%",
@@ -517,13 +521,17 @@ const styles = StyleSheet.create({
   },
 
   // -------------
+  contentInputFileProfile: {
+    width: "100%",
+    marginTop: 20,
+  },
   choosePhotoButton: {
     width: "100%",
     backgroundColor: "#47A9DA",
     borderRadius: 10,
     padding: 10,
     alignItems: "center",
-    marginBottom: 10,
+    marginVertical: 10,
   },
   choosePhotoText: {
     color: "white",

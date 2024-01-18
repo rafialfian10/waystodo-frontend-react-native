@@ -31,6 +31,9 @@ import { UserContext } from "./Context/UserContext";
 
 // api
 import { API } from "./Config/api";
+
+// env
+import { PATH_FILE_PHOTO } from "@env";
 // ------------------------------------------------------
 
 const ListTodo = ({ navigation }) => {
@@ -40,10 +43,11 @@ const ListTodo = ({ navigation }) => {
   // state categories
   const [categories, setCategories] = useState([]);
 
-  // state search & checked
+  // state search & checked & photo
   const [search, setSearch] = useState("");
   const [checked, setChecked] = useState(false);
-
+  const [photo, setPhoto] = useState([]);
+  
   // state category status for filter
   const [status, setStatus] = useState(false);
   const [category, setCategory] = useState("");
@@ -156,7 +160,14 @@ const ListTodo = ({ navigation }) => {
 
   useEffect(() => {
     refetchUser();
-  }, [checked]);
+
+    const updatedPhotoURL = user?.photo.replace("http://localhost:5000", PATH_FILE_PHOTO);
+
+    setPhoto((prevForm) => ({
+      ...prevForm,
+      photo: updatedPhotoURL,
+    }));
+  }, [checked, user]);
 
   return (
     <SafeAreaView style={styles.containerListTodo}>
@@ -175,15 +186,15 @@ const ListTodo = ({ navigation }) => {
                 {user?.photo &&
                 user?.photo !== "http://localhost:5000/uploads/photo/null" ? (
                   <Image
-                    source={user?.photo}
+                    source={{uri: photo?.photo}}
                     style={styles.photo}
                     alt="photo"
                   />
                 ) : (
                   <Image
-                    source={require("../assets/saitama.png")}
+                    source={require("../assets/default-photo.png")}
                     style={styles.photo}
-                    alt="photo"
+                    alt="default-photo"
                   />
                 )}
               </Pressable>
