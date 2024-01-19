@@ -49,7 +49,7 @@ const ListTodo = ({ navigation }) => {
   // state search & checked & photo
   const [search, setSearch] = useState("");
   const [checked, setChecked] = useState(false);
-  const [newPhoto, setNewPhoto] = useState();
+  const [newURLPhoto, setNewURLPhoto] = useState();
 
   // state category status for filter
   const [status, setStatus] = useState(false);
@@ -158,7 +158,7 @@ const ListTodo = ({ navigation }) => {
         PATH_FILE
       );
 
-      setNewPhoto((prevForm) => ({
+      setNewURLPhoto((prevForm) => ({
         ...prevForm,
         photo: updatedPhotoURL,
       }));
@@ -187,7 +187,7 @@ const ListTodo = ({ navigation }) => {
                     user?.photo !==
                       "http://localhost:5000/uploads/photo/null" ? (
                       <Image
-                        source={{ uri: newPhoto?.photo }}
+                        source={{ uri: newURLPhoto?.photo }}
                         style={styles.photo}
                         alt="photo"
                       />

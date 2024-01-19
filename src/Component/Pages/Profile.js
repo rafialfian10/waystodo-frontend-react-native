@@ -1,21 +1,27 @@
 // components react
 import { useContext, useState, useEffect } from "react";
 import { useRoute } from "@react-navigation/native";
+import {
+  MaterialIcons,
+  MaterialCommunityIcons,
+  FontAwesome,
+} from "@expo/vector-icons";
 import validator from "validator";
-// import ImagePicker from "react-native-image-picker";
+import * as ImagePicker from "expo-image-picker";
 import {
   StyleSheet,
   TextInput,
   Text,
   View,
   Modal,
+  Alert,
   TouchableOpacity,
   ActivityIndicator,
   SafeAreaView,
 } from "react-native";
 
 // components native base
-import { Box, Image, Menu, Pressable } from "native-base";
+import { Box, Button, Image, Menu, Pressable } from "native-base";
 
 // components
 import { UserContext } from "../../Context/UserContext";
@@ -40,7 +46,7 @@ const Profile = () => {
 
   // state modal & new photo
   const [modalVisible, setModalVisible] = useState(false);
-  const [newPhoto, setNewPhoto] = useState();
+  const [newURLPhoto, setNewURLPhoto] = useState();
 
   // state form
   const [form, setForm] = useState({
@@ -64,34 +70,55 @@ const Profile = () => {
       photo: user?.photo || "",
     });
 
-    // Ganti http://localhost:5000 dengan PATH_FILE
+    // replace http://localhost:5000 with PATH_FILE
     const updatedPhotoURL = user?.photo.replace(
       "http://localhost:5000",
       PATH_FILE
     );
 
-    setNewPhoto((prevForm) => ({
+    setNewURLPhoto((prevForm) => ({
       ...prevForm,
       photo: updatedPhotoURL,
     }));
   }, [user]);
 
-  // handle upload image
-  const handleImagePicker = async () => {
-    // ImagePicker.showImagePicker({ mediaType: "photo" }, (response) => {
-    //   if (!response.didCancel && !response.error) {
-    //     // Update the 'photo' state with the selected image URI
-    //     setForm((prevForm) => ({
-    //       ...prevForm,
-    //       photo: response.uri,
-    //     }));
-    //     // Clear any previous photo-related errors
-    //     setError((prevError) => ({
-    //       ...prevError,
-    //       photo: "",
-    //     }));
-    //   }
-    // });
+  const handleUploadPhoto = async (id) => {
+    let result = await ImagePicker.launchImageLibraryAsync({
+      mediaTypes: ImagePicker.MediaTypeOptions.All,
+      allowsEditing: true,
+      aspect: [4, 3],
+      quality: 1,
+    });
+
+    // solve: Key "cancelled" in the image picker result is deprecated, use "canceled" instead,
+    delete result.cancelled;
+
+    if (!result.canceled) {
+      try {
+        const config = {
+          headers: {
+            "Content-type": "application/json",
+            Authorization: "Bearer " + state?.user?.token,
+          },
+        };
+
+        const formData = new FormData();
+        formData.append("photo", result.assets[0].uri);
+
+        const data = formData._parts.find((part) => part[0] === "photo")[1];
+        console.log("form", data);
+
+        const response = await API.patch(`/user/${id}`, formData, config);
+        console.log("response", response.data);
+        if (response?.data?.status === 200) {
+          alert("Profile photo has been updated");
+          refetchUser();
+          setModalVisible(false);
+        }
+      } catch (err) {
+        console.log(err);
+      }
+    }
   };
 
   // handle change
@@ -151,6 +178,9 @@ const Profile = () => {
       };
 
       if (!messageError.userName && !messageError.email) {
+        // update form
+        // const updatedForm = { ...form, photo: uploadPhoto };
+
         const body = JSON.stringify(form);
 
         const response = await API.patch(`/user/${id}`, body, config);
@@ -162,6 +192,44 @@ const Profile = () => {
       } else {
         setError(messageError);
       }
+    } catch (err) {
+      console.log(err);
+    }
+  };
+
+  // handle delete photo
+  const handleDeletePhoto = async (id) => {
+    try {
+      const config = {
+        headers: {
+          "Content-type": "application/json",
+          Authorization: "Bearer " + state?.user?.token,
+        },
+      };
+
+      Alert.alert(
+        "Delete Photo",
+        "Are you sure?",
+        [
+          {
+            text: "Cancel",
+            style: "cancel",
+          },
+          {
+            text: "OK",
+            onPress: async () => {
+              const response = await API.delete(`/user/${id}/photo`, config);
+
+              if (response?.status === 200) {
+                alert("Photo has been deleted");
+                refetchUser();
+                setModalVisible(false);
+              }
+            },
+          },
+        ],
+        { cancelable: true }
+      );
     } catch (err) {
       console.log(err);
     }
@@ -180,10 +248,10 @@ const Profile = () => {
               trigger={(triggerProps) => {
                 return (
                   <Pressable {...triggerProps} style={styles.hamburger}>
-                    <Image
-                      source={require("../../../assets/hamburger.png")}
-                      style={styles.imageHamburger}
-                      alt="hamburger"
+                    <MaterialCommunityIcons
+                      name="menu"
+                      size={26}
+                      color="grey"
                     />
                   </Pressable>
                 );
@@ -207,7 +275,7 @@ const Profile = () => {
                 {user?.photo &&
                 user?.photo !== "http://localhost:5000/uploads/photo/null" ? (
                   <Image
-                    source={{ uri: newPhoto?.photo }}
+                    source={{ uri: newURLPhoto?.photo }}
                     style={styles.photoProfile}
                     alt="photo"
                   />
@@ -218,6 +286,17 @@ const Profile = () => {
                     alt="default-photo"
                   />
                 )}
+                <Pressable
+                  style={styles.updatePhotoIcon}
+                  onPress={() => handleUploadPhoto(user?.id)}
+                >
+                  <FontAwesome
+                    name="camera"
+                    size={15}
+                    color="white"
+                    style={styles.cameraIcon}
+                  />
+                </Pressable>
               </Box>
             </Box>
 
@@ -271,10 +350,8 @@ const Profile = () => {
                         onChangeText={(value) => handleChange("email", value)}
                         value={form.email}
                       />
-                      {error.email ? (
+                      {error.email && (
                         <Text style={styles.errorProfile}>{error.email}</Text>
-                      ) : (
-                        ""
                       )}
                     </Box>
 
@@ -294,10 +371,33 @@ const Profile = () => {
                     <Box style={styles.contentInputFileProfile}>
                       <TouchableOpacity
                         style={styles.choosePhotoButton}
-                        onPress={handleImagePicker}
+                        onPress={handleUploadPhoto}
                       >
                         <Text style={styles.choosePhotoText}>Choose Photo</Text>
                       </TouchableOpacity>
+                      {user?.photo &&
+                      user?.photo !==
+                        "http://localhost:5000/uploads/photo/null" ? (
+                        <Box>
+                          <TouchableOpacity
+                            style={styles.deletePhoto}
+                            onPress={() => handleDeletePhoto(user?.id)}
+                          >
+                            <MaterialIcons
+                              name="cancel"
+                              size={26}
+                              color="red"
+                            />
+                          </TouchableOpacity>
+                          <Image
+                            source={{ uri: newURLPhoto?.photo }}
+                            style={styles.selectedPhoto}
+                            alt="upload-photo"
+                          />
+                        </Box>
+                      ) : (
+                        <Box></Box>
+                      )}
                       {error.photo && (
                         <Text style={styles.errorProfile}>{error.photo}</Text>
                       )}
@@ -401,7 +501,6 @@ const styles = StyleSheet.create({
     alignItems: "center",
     padding: 2,
     borderRadius: 40,
-    overflow: "hidden",
     borderColor: "grey",
     borderWidth: 2,
   },
@@ -409,6 +508,19 @@ const styles = StyleSheet.create({
     width: "100%",
     height: "100%",
     borderRadius: 50,
+  },
+  updatePhotoIcon: {
+    position: "absolute",
+    bottom: 0,
+    right: 0,
+    backgroundColor: "grey",
+    borderRadius: 15,
+    zIndex: 5,
+    padding: 5,
+  },
+  cameraIcon: {
+    textAlign: "center",
+    textAlignVertical: "center",
   },
   contentDataProfile: {
     width: "90%",
@@ -506,8 +618,6 @@ const styles = StyleSheet.create({
     color: "white",
     fontWeight: "800",
   },
-
-  // -------------
   contentInputFileProfile: {
     width: "100%",
     marginTop: 20,
@@ -518,17 +628,23 @@ const styles = StyleSheet.create({
     borderRadius: 10,
     padding: 10,
     alignItems: "center",
-    marginVertical: 10,
+    marginTop: 10,
+    marginBottom: 20,
   },
   choosePhotoText: {
     color: "white",
     fontWeight: "bold",
   },
   selectedPhoto: {
-    width: "100%",
-    height: 100,
-    borderRadius: 10,
-    marginTop: 10,
+    width: "95%",
+    height: 200,
+    alignSelf: "center",
+  },
+  deletePhoto: {
+    position: "absolute",
+    top: -10,
+    right: -5,
+    zIndex: 1,
   },
 });
 
