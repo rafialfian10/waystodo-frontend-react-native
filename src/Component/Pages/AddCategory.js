@@ -91,8 +91,8 @@ const AddCategory = ({ navigation }) => {
       } else {
         setError(messageError);
       }
-    } catch (err) {
-      console.log(err);
+    } catch (error) {
+      console.log("category failed to add", error);
     }
   };
 
@@ -112,8 +112,8 @@ const AddCategory = ({ navigation }) => {
         alert("Category has been deleted");
         refetchCategoriesUser();
       }
-    } catch (err) {
-      console.log(err);
+    } catch (error) {
+      console.log("category failed to delete", error);
     }
   };
 
@@ -177,7 +177,6 @@ const AddCategory = ({ navigation }) => {
           >
             <Text style={styles.textBtnCategory}>Add category</Text>
           </TouchableOpacity>
-
           <Text style={styles.titleCategory}>List Category</Text>
           <HStack style={styles.containerCategory}>
             {categoriesUser?.map((category, i) => {

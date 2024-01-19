@@ -81,16 +81,14 @@ const ListTodo = ({ navigation }) => {
       const response = await API.patch(`/todo/${id}`, body, config);
       if (response.data.status === 200) {
         alert(
-          updatedChecklist
-            ? "Category has been checked"
-            : "Category has been unchecked"
+          updatedChecklist ? "Todo has been checked" : "Todo has been unchecked"
         );
         setChecked(updatedChecklist);
         refetchUser();
         refetchCategoriesUser();
       }
-    } catch (err) {
-      console.log(err);
+    } catch (error) {
+      console.log("todo failed to checked", error);
     }
   };
 
@@ -110,8 +108,8 @@ const ListTodo = ({ navigation }) => {
         refetchUser();
         refetchCategoriesUser();
       }
-    } catch (err) {
-      console.log(err);
+    } catch (error) {
+      console.log("todo failed to delete ", error);
     }
   };
 
@@ -183,9 +181,8 @@ const ListTodo = ({ navigation }) => {
               trigger={(triggerProps) => {
                 return (
                   <Pressable {...triggerProps}>
-                    {user?.photo &&
-                    user?.photo !==
-                      "http://localhost:5000/uploads/photo/null" ? (
+                    {newURLPhoto?.photo &&
+                    newURLPhoto?.photo !== `${PATH_FILE}/uploads/photo/null` ? (
                       <Image
                         source={{ uri: newURLPhoto?.photo }}
                         style={styles.photo}
@@ -219,7 +216,6 @@ const ListTodo = ({ navigation }) => {
               </TouchableOpacity>
             </Menu>
           </Box>
-
           <ScrollView>
             <Box style={styles.containerSearchFilter}>
               {/* search */}
@@ -278,7 +274,6 @@ const ListTodo = ({ navigation }) => {
                     </Box>
                   </Button>
                 </Box>
-
                 {/* filter category */}
                 <Box style={styles.subContentFilter}>
                   <Select
@@ -304,7 +299,6 @@ const ListTodo = ({ navigation }) => {
                     })}
                   </Select>
                 </Box>
-
                 {/* filter status */}
                 <Box style={styles.subContentFilter}>
                   <Select
@@ -324,7 +318,6 @@ const ListTodo = ({ navigation }) => {
                   </Select>
                 </Box>
               </Box>
-
               {/* todos */}
               {user?.todos
                 ?.filter((todoSearch) => {
@@ -347,7 +340,6 @@ const ListTodo = ({ navigation }) => {
                     todo?.description.length > 35
                       ? todo?.description.slice(0, 35) + "..."
                       : todo?.description;
-
                   return (
                     <TouchableOpacity
                       key={i}
@@ -397,7 +389,6 @@ const ListTodo = ({ navigation }) => {
                             </Text>
                           </Box>
                         </Box>
-
                         <Box style={styles.containerCategories}>
                           <Box style={styles.contentCheckbox}>
                             <Box

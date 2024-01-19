@@ -13,10 +13,10 @@ import Dashboard from "./Dashboard";
 import Register from "./Register";
 import Login from "./Login";
 import ListTodo from "./ListTodo";
+import DetailTodo from "./DetailTodo";
+import Profile from "./Profile";
 import AddCategory from "./AddCategory";
 import AddTodo from "./AddTodo";
-import DetailList from "./DetailList";
-import Profile from "./Profile";
 import { UserContext } from "../../Context/UserContext";
 
 // api
@@ -121,8 +121,8 @@ const Containers = () => {
             options={{ headerShown: false }}
           />
           <Stack.Screen
-            name="DetailList"
-            component={DetailList}
+            name="DetailTodo"
+            component={DetailTodo}
             options={{
               headerShown: true,
               headerStyle: { backgroundColor: theme.colors.brand["400"] },
@@ -152,7 +152,7 @@ const Containers = () => {
             options={{
               headerShown: true,
               headerStyle: { backgroundColor: "whitesmoke" },
-              headerTitle: ""
+              headerTitle: "",
             }}
           />
           <Stack.Screen
@@ -161,7 +161,7 @@ const Containers = () => {
             options={{
               headerShown: true,
               headerStyle: { backgroundColor: "whitesmoke" },
-              headerTitle: ""
+              headerTitle: "",
             }}
           />
         </Stack.Navigator>

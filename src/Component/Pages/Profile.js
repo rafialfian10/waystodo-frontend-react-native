@@ -44,9 +44,10 @@ const Profile = () => {
   // data user
   const { user, isLoading, refetchUser } = GetUser();
 
-  // state modal & new photo
+  // state modal & new url photo & upload photo
   const [modalVisible, setModalVisible] = useState(false);
   const [newURLPhoto, setNewURLPhoto] = useState();
+  const [uploadPhoto, setUploadPhoto] = useState();
 
   // state form
   const [form, setForm] = useState({
@@ -81,45 +82,6 @@ const Profile = () => {
       photo: updatedPhotoURL,
     }));
   }, [user]);
-
-  const handleUploadPhoto = async (id) => {
-    let result = await ImagePicker.launchImageLibraryAsync({
-      mediaTypes: ImagePicker.MediaTypeOptions.All,
-      allowsEditing: true,
-      aspect: [4, 3],
-      quality: 1,
-    });
-
-    // solve: Key "cancelled" in the image picker result is deprecated, use "canceled" instead,
-    delete result.cancelled;
-
-    if (!result.canceled) {
-      try {
-        const config = {
-          headers: {
-            "Content-type": "application/json",
-            Authorization: "Bearer " + state?.user?.token,
-          },
-        };
-
-        const formData = new FormData();
-        formData.append("photo", result.assets[0].uri);
-
-        const data = formData._parts.find((part) => part[0] === "photo")[1];
-        console.log("form", data);
-
-        const response = await API.patch(`/user/${id}`, formData, config);
-        console.log("response", response.data);
-        if (response?.data?.status === 200) {
-          alert("Profile photo has been updated");
-          refetchUser();
-          setModalVisible(false);
-        }
-      } catch (err) {
-        console.log(err);
-      }
-    }
-  };
 
   // handle change
   const handleChange = (data, value) => {
@@ -178,9 +140,6 @@ const Profile = () => {
       };
 
       if (!messageError.userName && !messageError.email) {
-        // update form
-        // const updatedForm = { ...form, photo: uploadPhoto };
-
         const body = JSON.stringify(form);
 
         const response = await API.patch(`/user/${id}`, body, config);
@@ -192,8 +151,52 @@ const Profile = () => {
       } else {
         setError(messageError);
       }
-    } catch (err) {
-      console.log(err);
+    } catch (error) {
+      console.log("photo failed to update", error);
+    }
+  };
+
+  // handle upload photo
+  const handleUploadPhoto = async (id) => {
+    try {
+      let result = await ImagePicker.launchImageLibraryAsync({
+        mediaTypes: ImagePicker.MediaTypeOptions.All,
+        allowsEditing: true,
+        aspect: [4, 3],
+        quality: 1,
+      });
+
+      // solve: Key "cancelled" in the image picker result is deprecated, use "canceled" instead,
+      delete result.cancelled;
+
+      if (!result.canceled) {
+        try {
+          const config = {
+            headers: {
+              "Content-type": "multipart/form-data",
+              Authorization: "Bearer " + state?.user?.token,
+            },
+          };
+
+          const formData = new FormData();
+          formData.append("photo", {
+            uri: result.assets[0].uri,
+            type: "image/jpeg",
+            name: `${state?.user?.userName}.jpg`,
+          });
+
+          const response = await API.patch(`/user/${id}`, formData, config);
+          if (response?.data?.status === 200) {
+            alert("Profile photo has been updated");
+            refetchUser();
+            setModalVisible(false);
+          }
+        } catch (error) {
+          console.log("photo failed to upload", error);
+        }
+      }
+    } catch (error) {
+      console.log("photo failed to select", error);
     }
   };
 
@@ -230,8 +233,8 @@ const Profile = () => {
         ],
         { cancelable: true }
       );
-    } catch (err) {
-      console.log(err);
+    } catch (error) {
+      console.log("photo failed to delete", error);
     }
   };
 
@@ -272,8 +275,8 @@ const Profile = () => {
                 <Text style={styles.userNameProfile}>{user?.userName}</Text>
               </Box>
               <Box style={styles.contentPhotoProfile}>
-                {user?.photo &&
-                user?.photo !== "http://localhost:5000/uploads/photo/null" ? (
+                {newURLPhoto?.photo &&
+                newURLPhoto?.photo !== `${PATH_FILE}/uploads/photo/null` ? (
                   <Image
                     source={{ uri: newURLPhoto?.photo }}
                     style={styles.photoProfile}
@@ -342,9 +345,9 @@ const Profile = () => {
                         </Text>
                       )}
                     </Box>
-
                     <Box style={styles.contentInputProfile}>
                       <TextInput
+                        editable={false}
                         style={styles.textInputProfile}
                         placeholder="Email..."
                         onChangeText={(value) => handleChange("email", value)}
@@ -354,12 +357,12 @@ const Profile = () => {
                         <Text style={styles.errorProfile}>{error.email}</Text>
                       )}
                     </Box>
-
                     <Box style={styles.contentInputProfile}>
                       <TextInput
                         style={styles.textInputProfile}
                         keyboardType="numeric"
                         placeholder="Phone..."
+                        maxLength={14}
                         onChangeText={(value) => handleChange("phone", value)}
                         value={form.phone}
                       />
@@ -367,17 +370,10 @@ const Profile = () => {
                         <Text style={styles.errorProfile}>{error.phone}</Text>
                       )}
                     </Box>
-
                     <Box style={styles.contentInputFileProfile}>
-                      <TouchableOpacity
-                        style={styles.choosePhotoButton}
-                        onPress={handleUploadPhoto}
-                      >
-                        <Text style={styles.choosePhotoText}>Choose Photo</Text>
-                      </TouchableOpacity>
-                      {user?.photo &&
-                      user?.photo !==
-                        "http://localhost:5000/uploads/photo/null" ? (
+                      {newURLPhoto?.photo &&
+                      newURLPhoto?.photo !==
+                        `${PATH_FILE}/uploads/photo/null` ? (
                         <Box>
                           <TouchableOpacity
                             style={styles.deletePhoto}
@@ -402,7 +398,6 @@ const Profile = () => {
                         <Text style={styles.errorProfile}>{error.photo}</Text>
                       )}
                     </Box>
-
                     <Box style={styles.containerBtnUpdateClose}>
                       <TouchableOpacity
                         style={styles.btnUpdate}

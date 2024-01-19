@@ -33,7 +33,6 @@ const Dashboard = ({ navigation }) => {
         >
           <Text style={styles.textBtn}>Login</Text>
         </TouchableOpacity>
-
         <TouchableOpacity
           style={styles.buttonRegister}
           onPress={() => navigation.navigate("Register")}

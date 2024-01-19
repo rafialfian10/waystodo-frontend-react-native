@@ -50,7 +50,10 @@ const Register = ({ navigation }) => {
     });
 
     if (data === "user_name") {
-      setError((prevError) => ({ ...prevError, userName: value.trim() === "" ? "Username is required" : "" }));
+      setError((prevError) => ({
+        ...prevError,
+        userName: value.trim() === "" ? "Username is required" : "",
+      }));
     }
 
     if (data === "email") {
@@ -73,14 +76,19 @@ const Register = ({ navigation }) => {
     }
 
     if (data === "password") {
-      setError((prevError) => ({ ...prevError, password: value.trim() === "" ? "Password is required" : "" }));
-  
-      const passwordRegex = /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d.)(?=.*[@$!%*?&.])[A-Za-z\d@$!%*?&.]{8,}$/;
-  
+      setError((prevError) => ({
+        ...prevError,
+        password: value.trim() === "" ? "Password is required" : "",
+      }));
+
+      const passwordRegex =
+        /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d.)(?=.*[@$!%*?&.])[A-Za-z\d@$!%*?&.]{8,}$/;
+
       if (value.trim() !== "" && !passwordRegex.test(value)) {
         setError((prevError) => ({
           ...prevError,
-          password: "Password must be at least 8 characters and include at least one uppercase letter, one lowercase letter, one digit, and one special character",
+          password:
+            "Password must be at least 8 characters and include at least one uppercase letter, one lowercase letter, one digit, and one special character",
         }));
       }
     }
@@ -123,8 +131,8 @@ const Register = ({ navigation }) => {
       } else {
         setError(messageError);
       }
-    } catch (err) {
-      console.log(err);
+    } catch (error) {
+      console.log("register failed", error);
     }
   };
 
@@ -193,7 +201,9 @@ const Register = ({ navigation }) => {
             <Text
               onPress={() => navigation.navigate("Login")}
               style={styles.linkRegister}
-            > Login
+            >
+              {" "}
+              Login
             </Text>
           </Text>
         </Box>

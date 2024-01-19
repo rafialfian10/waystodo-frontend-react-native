@@ -3,7 +3,7 @@ import { StyleSheet, View, Text, SafeAreaView, ScrollView } from "react-native";
 import moment from "moment";
 // --------------------------------------------------------------
 
-const DetailList = ({ route, navigation }) => {
+const DetailTodo = ({ route, navigation }) => {
   const { id, todo } = route.params;
 
   return (
@@ -15,7 +15,7 @@ const DetailList = ({ route, navigation }) => {
     >
       <ScrollView>
         <View style={styles.contentDetail}>
-          <Text style={styles.titleDetailList}>{todo?.title}</Text>
+          <Text style={styles.tiTodo}>{todo?.title}</Text>
           <Text style={styles.dateDetailList}>
             {moment(todo?.date).format("YYYY-MM-DD")}
           </Text>
@@ -38,7 +38,7 @@ const styles = StyleSheet.create({
     padding: 10,
     borderRadius: 5,
     borderWidth: 2,
-    borderColor: "whitesmoke"
+    borderColor: "whitesmoke",
   },
   titleDetailList: {
     fontSize: 25,
@@ -57,4 +57,4 @@ const styles = StyleSheet.create({
   },
 });
 
-export default DetailList;
+export default DetailTodo;

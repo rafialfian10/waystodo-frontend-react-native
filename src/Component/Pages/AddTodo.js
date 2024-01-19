@@ -134,8 +134,8 @@ const AddTodo = ({ navigation }) => {
       } else {
         setError(messageError);
       }
-    } catch (err) {
-      console.log(err);
+    } catch (error) {
+      console.log("todo failed to add", error);
     }
   };
 
@@ -185,7 +185,6 @@ const AddTodo = ({ navigation }) => {
             />
           </Box>
           {error.title && <Text style={styles.errorTodo}>{error.title}</Text>}
-
           <Box style={styles.containerSelectCategory}>
             <Select
               selectedValue={form.category_id}
@@ -209,7 +208,6 @@ const AddTodo = ({ navigation }) => {
           {error.categoryId && (
             <Text style={styles.errorTodo}>{error.categoryId}</Text>
           )}
-
           <Box style={styles.containerSelectCategory}>
             <Select
               selectedValue={form.bg_color}
@@ -233,7 +231,6 @@ const AddTodo = ({ navigation }) => {
           {error.bgColor && (
             <Text style={styles.errorTodo}>{error.bgColor}</Text>
           )}
-
           <Box style={styles.dateInput}>
             <Button style={styles.dateButton} onPress={showDatepicker} />
             <Text style={styles.textDate}>
@@ -246,7 +243,6 @@ const AddTodo = ({ navigation }) => {
             />
           </Box>
           {error.date && <Text style={styles.errorTodo}>{error.date}</Text>}
-
           <Box style={styles.containerDescription}>
             <TextArea
               h={40}

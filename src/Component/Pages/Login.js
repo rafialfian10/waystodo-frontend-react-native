@@ -106,9 +106,8 @@ const Login = ({ navigation }) => {
       } else {
         setError(messageError);
       }
-    } catch (err) {
-      console.error("Login error:", err);
-      alert("Login failed (unexpected error)");
+    } catch (error) {
+      console.log("login failed", error);
     }
   };
 
