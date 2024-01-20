@@ -1,6 +1,8 @@
 // components react
-import { useState, useContext } from "react";
+import { useState, useRef, useContext } from "react";
 import { DateTimePickerAndroid } from "@react-native-community/datetimepicker";
+import ColorPicker from "react-native-wheel-color-picker";
+import Icon from 'react-native-vector-icons/FontAwesome';
 import {
   StyleSheet,
   TextInput,
@@ -11,7 +13,7 @@ import {
 } from "react-native";
 
 // componenst native base
-import { Box, Image, Button, TextArea, Select, CheckIcon } from "native-base";
+import { Box, Button, TextArea, Select, CheckIcon } from "native-base";
 
 // components
 import { UserContext } from "../../Context/UserContext";
@@ -48,6 +50,19 @@ const AddTodo = ({ navigation }) => {
     bgColor: "",
     date: "",
   });
+
+  // state color picker
+  const pickerRef = useRef(null);
+  const [colorPickerVisible, setColorPickerVisibility] = useState(false);
+  const [swatchesOnly, setSwatchesOnly] = useState(false);
+  const [swatchesEnabled, setSwatchesEnabled] = useState(true);
+  const [disc, setDisc] = useState(false);
+  // const [swatchesLast, setSwatchesLast] = useState(false);
+
+  // handle toggle color
+  const handleColorToggle = () => {
+    setColorPickerVisibility(!colorPickerVisible);
+  };
 
   // handle change
   const handleChange = (data, value) => {
@@ -139,8 +154,8 @@ const AddTodo = ({ navigation }) => {
     }
   };
 
-  // date
-  const showMode = (currentMode) => {
+  // show date
+  const showDatepicker = (currentMode) => {
     DateTimePickerAndroid.open({
       value: form.date || new Date(), // use form.date or default to new Date()
       onChange: (event, selectedDate) => {
@@ -153,30 +168,12 @@ const AddTodo = ({ navigation }) => {
     });
   };
 
-  const showDatepicker = () => {
-    showMode("date");
-  };
-
-  // colors
-  const colorOptions = [
-    { label: "Red", value: "#FFA0A0" },
-    { label: "Green", value: "#A0FFA0" },
-    { label: "Blue", value: "#A0A0FF" },
-    { label: "Yellow", value: "#FFFFA0" },
-    { label: "Purple", value: "#FFA0FF" },
-    { label: "Cyan", value: "#A0FFFF" },
-    { label: "Pink", value: "#FFC0CB" },
-    { label: "Lime", value: "#DFFF00" },
-    { label: "Sky Blue", value: "#87CEEB" },
-    { label: "Lavender", value: "#E6E6FA" },
-  ];
-
   return (
     <SafeAreaView style={styles.containerAddList}>
       <ScrollView>
         <Box style={styles.todoContainer}>
           <Text style={styles.titleTodo}>Add Todo</Text>
-          <Box>
+          <Box style={styles.contentInputTodo}>
             <TextInput
               style={styles.textInputTodo}
               placeholder="Title"
@@ -208,39 +205,15 @@ const AddTodo = ({ navigation }) => {
           {error.categoryId && (
             <Text style={styles.errorTodo}>{error.categoryId}</Text>
           )}
-          <Box style={styles.containerSelectCategory}>
-            <Select
-              selectedValue={form.bg_color}
-              onValueChange={(value) => handleChange("bg_color", value)}
-              style={styles.selectCategory}
-              _selectedItem={{
-                bg: "#7AC1E4",
-                endIcon: <CheckIcon size="5" />,
-              }}
-              placeholder="Select color"
-            >
-              {colorOptions.map((color, index) => (
-                <Select.Item
-                  key={index}
-                  label={color.label}
-                  value={color.value}
-                />
-              ))}
-            </Select>
-          </Box>
-          {error.bgColor && (
-            <Text style={styles.errorTodo}>{error.bgColor}</Text>
-          )}
           <Box style={styles.dateInput}>
-            <Button style={styles.dateButton} onPress={showDatepicker} />
+            <Button
+              style={styles.dateButton}
+              onPress={() => showDatepicker("date")}
+            />
             <Text style={styles.textDate}>
               {form.date ? form.date.toLocaleDateString() : "Date"}
             </Text>
-            <Image
-              style={styles.imageDate}
-              source={require("../../../assets/calender.png")}
-              alt="calender"
-            />
+            <Icon name="calendar" size={20} color="black" style={styles.imgDate} />
           </Box>
           {error.date && <Text style={styles.errorTodo}>{error.date}</Text>}
           <Box style={styles.containerDescription}>
@@ -250,10 +223,51 @@ const AddTodo = ({ navigation }) => {
               placeholder="Description"
               onChangeText={(value) => handleChange("description", value)}
               value={form.description}
+              focusOutlineColor={"transparent"}
             />
           </Box>
           {error.description && (
             <Text style={styles.errorTodo}>{error.description}</Text>
+          )}
+          <Box style={styles.contentInputTodo}>
+            <TextInput
+              editable={false}
+              style={styles.textInputTodo}
+              placeholder="Color"
+              value={form.bg_color}
+            />
+            <TouchableOpacity
+              style={styles.btnChooseColor}
+              onPress={handleColorToggle}
+            >
+              <Text style={styles.textBtnChooseColor}> Choose Color</Text>
+            </TouchableOpacity>
+          </Box>
+          {error.bgColor && (
+            <Text style={styles.errorTodo}>{error.bgColor}</Text>
+          )}
+          {colorPickerVisible && (
+            <Box style={styles.containerColor}>
+              <ColorPicker
+                ref={pickerRef}
+                color={form.bg_color}
+                swatchesOnly={swatchesOnly}
+                // onColorChange={onColorChange}
+                onColorChangeComplete={(value) =>
+                  handleChange("bg_color", value)
+                }
+                thumbSize={40}
+                sliderSize={20}
+                noSnap={true}
+                row={false}
+                swatches={swatchesEnabled}
+                discrete={disc}
+                style={styles.colorPicker}
+              />
+              <Text style={styles.textColorPicker}>
+                Hashcode: {form.bg_color.toUpperCase()}
+              </Text>
+            </Box>
           )}
           <TouchableOpacity style={styles.buttonTodo} onPress={handleSubmit}>
             <Text style={styles.textBtnTodo}>Add List</Text>
@@ -279,25 +293,29 @@ const styles = StyleSheet.create({
     fontSize: 25,
     fontWeight: "800",
   },
-  textInputTodo: {
+  contentInputTodo: {
     width: "80%",
-    height: 50,
-    justifyContent: "center",
     alignSelf: "center",
-    paddingLeft: 20,
-    borderRadius: 5,
+  },
+  textInputTodo: {
+    width: "100%",
+    height: 50,
+    paddingHorizontal: 15,
+    borderRadius: 10,
     backgroundColor: "#DCDCDC",
   },
   containerSelectCategory: {
     width: "80%",
     alignSelf: "center",
+    borderRadius: 10,
+    overflow: "hidden",
     backgroundColor: "#DCDCDC",
   },
   selectCategory: {
     height: 50,
     fontSize: 14,
     color: "grey",
-    borderRadius: 5,
+    overflow: "hidden",
   },
   errorTodo: {
     width: "80%",
@@ -314,7 +332,7 @@ const styles = StyleSheet.create({
     flexDirection: "row",
     alignItems: "center",
     alignSelf: "center",
-    borderRadius: 5,
+    borderRadius: 10,
     color: "red",
     backgroundColor: "#DCDCDC",
   },
@@ -333,28 +351,67 @@ const styles = StyleSheet.create({
     paddingHorizontal: 15,
     color: "grey",
   },
-  imageDate: {
+  imgDate: {
     width: 25,
     height: 25,
     position: "absolute",
-    right: 15,
+    right: 10,
   },
   containerDescription: {
     width: "80%",
     alignSelf: "center",
+    borderRadius: 10,
+    overflow: "hidden",
     backgroundColor: "#DCDCDC",
   },
   contentDescription: {
     width: "100%",
+    borderRadius: 10,
     fontSize: 15,
-    paddingHorizontal: 20,
+    backgroundColor: "#DCDCDC",
+  },
+  btnChooseColor: {
+    width: "40%",
+    height: 50,
+    position: "absolute",
+    right: 0,
+    alignSelf: "center",
+    borderRadius: 10,
+    borderWidth: 2,
+    borderColor: "grey",
+    backgroundColor: "#DCDCDC",
+  },
+  textBtnChooseColor: {
+    height: "100%",
+    textAlign: "center",
+    textAlignVertical: "center",
+    fontWeight: "800",
+    color: "grey",
+  },
+  containerColor: {
+    width: "80%",
+    height: 400,
+    alignSelf: "center",
+    borderRadius: 10,
+  },
+  colorPicker: {
+    width: "100%",
+    height: "100%",
+  },
+  textColorPicker: {
+    width: "100%",
+    marginTop: 20,
+    textAlign: "center",
+    fontSize: 14,
+    fontWeight: "800",
+    color: "grey",
   },
   buttonTodo: {
     width: "80%",
     height: 50,
     marginVertical: 20,
     alignSelf: "center",
-    borderRadius: 5,
+    borderRadius: 10,
     backgroundColor: "#FF5555",
   },
   textBtnTodo: {

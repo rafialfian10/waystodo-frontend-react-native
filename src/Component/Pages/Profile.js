@@ -1,13 +1,14 @@
 // components react
 import { useContext, useState, useEffect } from "react";
 import { useRoute } from "@react-navigation/native";
+import validator from "validator";
+import { LinearGradient } from "expo-linear-gradient";
+import * as ImagePicker from "expo-image-picker";
 import {
   MaterialIcons,
   MaterialCommunityIcons,
   FontAwesome,
 } from "@expo/vector-icons";
-import validator from "validator";
-import * as ImagePicker from "expo-image-picker";
 import {
   StyleSheet,
   TextInput,
@@ -21,7 +22,7 @@ import {
 } from "react-native";
 
 // components native base
-import { Box, Button, Image, Menu, Pressable } from "native-base";
+import { Box, Image, Menu, Pressable } from "native-base";
 
 // components
 import { UserContext } from "../../Context/UserContext";
@@ -267,9 +268,12 @@ const Profile = () => {
                 <Text style={styles.textOpenModal}>Update profile</Text>
               </TouchableOpacity>
             </Menu>
-            <Box
-              colors={["#335C81", "#FFFFFF"]}
+            <LinearGradient
               style={styles.subContentProfile}
+              colors={["#47A9DA", "#67C8fA", "#C8FBFB", "#FFFFFF"]}
+              start={{ x: 0, y: 0.5 }}
+              end={{ x: 1, y: 0.5 }}
+              locations={[0, 0.5, 0.8, 1]}
             >
               <Box style={styles.contentUserName}>
                 <Text style={styles.userNameProfile}>{user?.userName}</Text>
@@ -301,7 +305,7 @@ const Profile = () => {
                   />
                 </Pressable>
               </Box>
-            </Box>
+            </LinearGradient>
 
             <Box style={styles.contentDataProfile}>
               <Box style={styles.subContentDataProfile}>
@@ -475,6 +479,7 @@ const styles = StyleSheet.create({
     flexDirection: "column",
     justifyContent: "center",
     alignItems: "flex-start",
+    backgroundColor: "grey",
   },
   contentUserName: {
     width: "100%",
@@ -486,7 +491,7 @@ const styles = StyleSheet.create({
   userNameProfile: {
     fontSize: 22,
     fontWeight: "bold",
-    color: "grey",
+    color: "whitesmoke",
   },
   contentPhotoProfile: {
     width: 80,

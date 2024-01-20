@@ -36,7 +36,7 @@ const styles = StyleSheet.create({
     marginTop: 30,
     flex: 1,
     padding: 10,
-    borderRadius: 5,
+    borderRadius: 10,
     borderWidth: 2,
     borderColor: "whitesmoke",
   },

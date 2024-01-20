@@ -2,10 +2,13 @@
 import { useState, useEffect, useContext } from "react";
 import { DateTimePickerAndroid } from "@react-native-community/datetimepicker";
 import AsyncStorage from "@react-native-async-storage/async-storage";
+import Icon from "react-native-vector-icons/FontAwesome";
 import moment from "moment";
 import {
   StyleSheet,
   TextInput,
+  Text,
+  Image,
   Alert,
   SafeAreaView,
   ScrollView,
@@ -15,9 +18,7 @@ import {
 
 // components native base
 import {
-  Text,
   Box,
-  Image,
   Button,
   Select,
   CheckIcon,
@@ -47,17 +48,58 @@ const ListTodo = ({ navigation }) => {
   const { categoriesUser, refetchCategoriesUser } = GetCategoriesUser();
 
   // state search & checked & photo
-  const [search, setSearch] = useState("");
   const [checked, setChecked] = useState(false);
   const [newURLPhoto, setNewURLPhoto] = useState();
 
-  // state category status for filter
-  const [status, setStatus] = useState(false);
-  const [category, setCategory] = useState("");
+  // state search, date, category, status
+  const [search, setSearch] = useState("");
+  const [filterDate, setFilterDate] = useState();
+  const [filterCategory, setFilterCategory] = useState();
+  const [filterStatus, setFilterStatus] = useState(false);
 
   // handle search
   const handleSearch = (value) => {
     setSearch(value);
+    setFilterDate("");
+    setFilterStatus("");
+    setFilterCategory("");
+  };
+
+  // handle filter date
+  const handleFilterDate = (value) => {
+    setFilterDate(value);
+    setSearch("");
+    setFilterStatus("");
+    setFilterCategory("");
+  };
+
+  // handle filter category
+  const handleFilterCategory = (value) => {
+    setFilterCategory(value);
+    setSearch("");
+    setFilterDate("");
+    setFilterStatus("");
+  };
+
+  // handle filter status
+  const handleFilterStatus = (value) => {
+    setFilterStatus(value);
+    setSearch("");
+    setFilterDate("");
+    setFilterCategory("");
+  };
+
+  // show date
+  const showDatepicker = (currentMode) => {
+    DateTimePickerAndroid.open({
+      value: filterDate || new Date(),
+      onChange: (event, selectedDate) => {
+        const currentDate = selectedDate || new Date();
+        setFilterDate(currentDate);
+      },
+      mode: currentMode,
+      is24Hour: true,
+    });
   };
 
   // handle checked
@@ -122,28 +164,6 @@ const ListTodo = ({ navigation }) => {
     });
     navigation.navigate("Index");
     alert("Logout successfully");
-  };
-
-  // state date
-  const [date, setDate] = useState(new Date(1598051730000));
-
-  const onChange = (event, selectedDate) => {
-    const currentDate = selectedDate || date;
-    setDate(currentDate);
-    const formattedDate = moment(currentDate).format("YYYY-MM-DD");
-  };
-
-  const showMode = (currentMode) => {
-    DateTimePickerAndroid.open({
-      value: date,
-      onChange,
-      mode: currentMode,
-      is24Hour: true,
-    });
-  };
-
-  const showDatepicker = () => {
-    showMode("date");
   };
 
   useEffect(() => {
@@ -229,47 +249,23 @@ const ListTodo = ({ navigation }) => {
                 {/* filter date */}
                 <Box style={styles.subContentFilter}>
                   <Button
-                    style={{
-                      width: "100%",
-                      backgroundColor: "transparent",
-                      height: 50,
+                    style={styles.btnDate}
+                    onPress={() => {
+                      showDatepicker("date");
+                      handleFilterDate();
                     }}
-                    onPress={showDatepicker}
                   >
-                    <Box
-                      style={{
-                        width: "100%",
-                        display: "flex",
-                        flexDirection: "row",
-                        justifyContent: "space-around",
-                        alignItems: "center",
-                      }}
-                    >
-                      {date === "" ? (
-                        <Text
-                          style={{
-                            fontSize: 10,
-                            marginRight: 20,
-                            color: "grey",
-                          }}
-                        >
-                          {date.toLocaleDateString()}
-                        </Text>
-                      ) : (
-                        <Text
-                          style={{
-                            fontSize: 11,
-                            marginRight: 20,
-                            color: "grey",
-                          }}
-                        >
-                          Date
-                        </Text>
-                      )}
-                      <Image
-                        style={{ width: 20, height: 20 }}
-                        source={require("../../../assets/calender.png")}
-                        alt="calender"
+                    <Box style={styles.date}>
+                      <Text style={styles.textDate}>
+                        {filterDate
+                          ? moment(filterDate).format("YYYY-MM-DD")
+                          : "Date"}
+                      </Text>
+                      <Icon
+                        name="calendar"
+                        size={20}
+                        color="black"
+                        style={styles.imgDate}
                       />
                     </Box>
                   </Button>
@@ -277,16 +273,14 @@ const ListTodo = ({ navigation }) => {
                 {/* filter category */}
                 <Box style={styles.subContentFilter}>
                   <Select
-                    selectedValue={category}
-                    onValueChange={(itemValue) => {
-                      setCategory(itemValue);
-                    }}
                     style={{ fontSize: 10, height: 45 }}
+                    placeholder="Category"
                     _selectedItem={{
                       bg: "#7AC1E4",
                       endIcon: <CheckIcon size="5" />,
                     }}
-                    placeholder="Category"
+                    selectedValue={filterCategory}
+                    onValueChange={handleFilterCategory}
                   >
                     {categoriesUser?.map((item) => {
                       return (
@@ -302,33 +296,54 @@ const ListTodo = ({ navigation }) => {
                 {/* filter status */}
                 <Box style={styles.subContentFilter}>
                   <Select
-                    selectedValue={status}
-                    onValueChange={(itemValue) => {
-                      setStatus(itemValue);
-                    }}
                     style={{ fontSize: 10, height: 45 }}
+                    placeholder="Status"
                     _selectedItem={{
                       bg: "#7AC1E4",
                       endIcon: <CheckIcon size="5" />,
                     }}
-                    placeholder="Status"
+                    selectedValue={filterStatus}
+                    onValueChange={handleFilterStatus}
                   >
-                    <Select.Item label="Checked" value="true" />
-                    <Select.Item label="Unchecked" value="false" />
+                    <Select.Item label="Checked" value="1" />
+                    <Select.Item label="Unchecked" value="0" />
                   </Select>
                 </Box>
               </Box>
               {/* todos */}
               {user?.todos
-                ?.filter((todoSearch) => {
+                ?.filter((todo) => {
                   if (search == "") {
-                    return todoSearch;
+                    return todo;
                   } else if (
-                    todoSearch?.title
+                    todo?.title
                       .toLowerCase()
                       .includes(search.toLocaleLowerCase())
                   ) {
-                    return todoSearch;
+                    return todo;
+                  }
+                })
+                .filter((todo) => {
+                  if (filterDate) {
+                    return moment(todo.date).isSame(filterDate, "day");
+                  } else {
+                    return true;
+                  }
+                })
+                .filter((todo) => {
+                  if (filterCategory) {
+                    return todo.category.id === filterCategory;
+                  } else {
+                    return true;
+                  }
+                })
+                .filter((todo) => {
+                  if (filterStatus === "0") {
+                    return !todo?.isDone;
+                  } else if (filterStatus === "1") {
+                    return todo?.isDone;
+                  } else {
+                    return todo;
                   }
                 })
                 .map((todo, i) => {
@@ -367,7 +382,7 @@ const ListTodo = ({ navigation }) => {
                           <Text
                             style={styles.todoTitle}
                             onPress={() =>
-                              navigation.push("DetailList", {
+                              navigation.push("DetailTodo", {
                                 id: todo?.id,
                                 todo: todo,
                               })
@@ -379,10 +394,11 @@ const ListTodo = ({ navigation }) => {
                             {descriptionLength}
                           </Text>
                           <Box style={styles.contentDate}>
-                            <Image
-                              style={styles.imageDate}
-                              source={require("../../../assets/calender.png")}
-                              alt="calender"
+                            <Icon
+                              name="calendar"
+                              size={20}
+                              color="black"
+                              style={styles.imgDate}
                             />
                             <Text style={styles.todoDate}>
                               {moment(todo?.date).format("YYYY-MM-DD")}
@@ -497,7 +513,7 @@ const styles = StyleSheet.create({
     marginBottom: 10,
     alignSelf: "center",
     paddingLeft: 10,
-    borderRadius: 5,
+    borderRadius: 10,
     fontSize: 11,
     backgroundColor: "#DCDCDC",
   },
@@ -519,9 +535,27 @@ const styles = StyleSheet.create({
     height: 50,
     marginBottom: 10,
     alignSelf: "center",
-    borderRadius: 5,
+    borderRadius: 10,
+    overflow: "hidden",
     color: "#999999",
     backgroundColor: "#DCDCDC",
+  },
+  btnDate: {
+    width: "100%",
+    height: 50,
+    backgroundColor: "transparent",
+  },
+  date: {
+    width: "100%",
+    display: "flex",
+    flexDirection: "row",
+    justifyContent: "space-around",
+    alignItems: "center",
+  },
+  textDate: {
+    fontSize: 10,
+    marginRight: 20,
+    color: "grey",
   },
   containerTodos: {
     width: "95%",
@@ -531,7 +565,7 @@ const styles = StyleSheet.create({
     justifyContent: "space-evenly",
     alignSelf: "center",
     padding: 10,
-    borderRadius: 5,
+    borderRadius: 10,
   },
   contentTodo: {
     width: "70%",
@@ -549,12 +583,12 @@ const styles = StyleSheet.create({
     flexDirection: "row",
     alignItems: "center",
   },
-  imageDate: {
+  imgDate: {
     width: 20,
     height: 20,
-    marginRight: 10,
   },
   todoDate: {
+    marginLeft: 10,
     fontSize: 12,
   },
   containerCategories: {
@@ -572,9 +606,8 @@ const styles = StyleSheet.create({
     borderRadius: 5,
   },
   categoryTitle: {
-    padding: 0,
     height: 30,
-    borderRadius: 5,
+    padding: 0,
     textAlign: "center",
     fontSize: 12,
     fontWeight: "800",

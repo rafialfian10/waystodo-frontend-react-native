@@ -7,7 +7,7 @@ import { StatusBar } from "expo-status-bar";
 import { NativeBaseProvider, extendTheme } from "native-base";
 
 // components
-import Containers from "./src/Component/Pages/Containers";
+import ContainerNavigation from "./src/Component/Pages/ContainerNavigation";
 import { UserContextProvider } from "./src/Context/UserContext";
 // -------------------------------------------------------
 
@@ -39,7 +39,7 @@ export default function App() {
         <StatusBar style="auto" />
         <NavigationContainer>
           <NativeBaseProvider theme={theme}>
-            <Containers />
+            <ContainerNavigation />
           </NativeBaseProvider>
         </NavigationContainer>
       </UserContextProvider>

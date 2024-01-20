@@ -37,6 +37,7 @@ function MyTab() {
         headerMode: "screen",
         headerTintColor: "white",
         headerStyle: { backgroundColor: theme.colors.brand["400"] },
+        headerTitle: "",
         tabBarIcon: ({ focused, color, size }) => {
           let iconName;
           if (route.name === "ListTodo") {
@@ -59,7 +60,7 @@ function MyTab() {
   );
 }
 
-const Containers = () => {
+const ContainerNavigation = () => {
   // dispatch
   const [state, dispatch] = useContext(UserContext);
 
@@ -127,6 +128,7 @@ const Containers = () => {
               headerShown: true,
               headerStyle: { backgroundColor: theme.colors.brand["400"] },
               headerTintColor: "whitesmoke",
+              headerTitle: "",
             }}
           />
           <Stack.Screen
@@ -136,6 +138,7 @@ const Containers = () => {
               headerShown: true,
               headerStyle: { backgroundColor: theme.colors.brand["400"] },
               headerTintColor: "whitesmoke",
+              headerTitle: "",
             }}
           />
         </Stack.Navigator>
@@ -170,4 +173,4 @@ const Containers = () => {
   );
 };
 
-export default Containers;
+export default ContainerNavigation;

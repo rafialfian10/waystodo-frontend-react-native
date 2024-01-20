@@ -1,5 +1,6 @@
 // components react
-import { useState, useContext } from "react";
+import { useState, useContext, useRef } from "react";
+import ColorPicker from "react-native-wheel-color-picker";
 import {
   StyleSheet,
   TextInput,
@@ -8,10 +9,11 @@ import {
   SafeAreaView,
   TouchableOpacity,
   ScrollView,
+  Pressable,
 } from "react-native";
 
 // components native base
-import { Box, Select, CheckIcon, HStack } from "native-base";
+import { Box, HStack } from "native-base";
 
 // components
 import { UserContext } from "../../Context/UserContext";
@@ -40,6 +42,23 @@ const AddCategory = ({ navigation }) => {
     bgColor: "",
   });
 
+  // state color picker
+  const pickerRef = useRef(null);
+  const [colorPickerVisible, setColorPickerVisibility] = useState(false);
+  const [swatchesOnly, setSwatchesOnly] = useState(false);
+  const [swatchesEnabled, setSwatchesEnabled] = useState(true);
+  const [disc, setDisc] = useState(false);
+  // const [swatchesLast, setSwatchesLast] = useState(false);
+
+  // handle toggle color
+  const handleColorToggle = () => {
+    setColorPickerVisibility(!colorPickerVisible);
+  };
+
+  // const onColorChange = (color) => {
+  //   setForm((prevForm) => ({ ...prevForm, bg_color: color }));
+  // };
+
   // handle change
   const handleChange = (data, value) => {
     setForm((prevForm) => ({ ...prevForm, [data]: value }));
@@ -54,7 +73,7 @@ const AddCategory = ({ navigation }) => {
     if (data === "bg_color") {
       setError((prevError) => ({
         ...prevError,
-        bgColor: value.trim() === "" ? "Color is required" : "",
+        bgColor: value === "" ? "Color is required" : "",
       }));
     }
   };
@@ -76,8 +95,10 @@ const AddCategory = ({ navigation }) => {
 
       if (!messageError.categoryName && !messageError.bgColor) {
         const body = JSON.stringify(form);
+        console.log(body);
 
         const response = await API.post("/category", body, config);
+        console.log(response.data);
         if (response.data.status === 201) {
           alert("Category has been added");
           refetchCategoriesUser();
@@ -115,28 +136,14 @@ const AddCategory = ({ navigation }) => {
     } catch (error) {
       console.log("category failed to delete", error);
     }
-  };
-
-  // colors
-  const colorOptions = [
-    { label: "Red", value: "#FFA0A0" },
-    { label: "Green", value: "#A0FFA0" },
-    { label: "Blue", value: "#A0A0FF" },
-    { label: "Yellow", value: "#FFFFA0" },
-    { label: "Purple", value: "#FFA0FF" },
-    { label: "Cyan", value: "#A0FFFF" },
-    { label: "Pink", value: "#FFC0CB" },
-    { label: "Lime", value: "#DFFF00" },
-    { label: "Sky Blue", value: "#87CEEB" },
-    { label: "Lavender", value: "#E6E6FA" },
-  ];
+  }; 
 
   return (
     <SafeAreaView style={styles.containerAddCategory}>
       <ScrollView>
         <Box style={styles.categoryContainer}>
           <Text style={styles.titleCategory}>Add Category</Text>
-          <Box>
+          <Box style={styles.contentInputCategory}>
             <TextInput
               style={styles.textInputCategory}
               placeholder="Category"
@@ -148,28 +155,43 @@ const AddCategory = ({ navigation }) => {
           {error.categoryName && (
             <Text style={styles.errorCategory}>{error.categoryName}</Text>
           )}
-          <Box style={styles.containerSelectCategory}>
-            <Select
-              selectedValue={form.bg_color}
-              onValueChange={(value) => handleChange("bg_color", value)}
-              style={styles.selectCategory}
-              _selectedItem={{
-                bg: "#7AC1E4",
-                endIcon: <CheckIcon size="5" />,
-              }}
-              placeholder="Select color"
+          <Box style={styles.contentInputCategory}>
+            <TextInput
+              editable={false}
+              style={styles.textInputCategory}
+              placeholder="Color"
+              value={form.bg_color}
+            />
+            <TouchableOpacity
+              style={styles.btnChooseColor}
+              onPress={handleColorToggle}
             >
-              {colorOptions.map((color, index) => (
-                <Select.Item
-                  key={index}
-                  label={color.label}
-                  value={color.value}
-                />
-              ))}
-            </Select>
+              <Text style={styles.textBtnChooseColor}> Choose Color</Text>
+            </TouchableOpacity>
           </Box>
           {error.bgColor && (
             <Text style={styles.errorCategory}>{error.bgColor}</Text>
+          )}
+          {colorPickerVisible && (
+            <Box style={styles.containerColor}>
+              <ColorPicker
+                ref={pickerRef}
+                color={form.bg_color}
+                swatchesOnly={swatchesOnly}
+                // onColorChange={onColorChange}
+                onColorChangeComplete={(value) => handleChange("bg_color", value)}
+                thumbSize={40}
+                sliderSize={20}
+                noSnap={true}
+                row={false}
+                swatches={swatchesEnabled}
+                discrete={disc}
+                style={styles.colorPicker}
+              />
+              <Text style={styles.textColorPicker}>
+                Hashcode: {form.bg_color.toUpperCase()}
+              </Text>
+            </Box>
           )}
           <TouchableOpacity
             style={styles.buttonCategory}
@@ -232,24 +254,52 @@ const styles = StyleSheet.create({
     fontSize: 25,
     fontWeight: "800",
   },
+  contentInputCategory: {
+    width: "80%",
+    alignSelf: "center",
+  },
   textInputCategory: {
-    width: "80%",
+    width: "100%",
     height: 50,
-    alignSelf: "center",
     paddingHorizontal: 15,
-    borderRadius: 5,
+    borderRadius: 10,
     backgroundColor: "#DCDCDC",
   },
-  containerSelectCategory: {
-    width: "80%",
-    alignSelf: "center",
-    backgroundColor: "#DCDCDC",
-  },
-  selectCategory: {
+  btnChooseColor: {
+    width: "40%",
     height: 50,
-    fontSize: 14,
+    position: "absolute",
+    right: 0,
+    alignSelf: "center",
+    borderRadius: 10,
+    borderWidth: 2,
+    borderColor: "grey",
+    backgroundColor: "#DCDCDC",
+  },
+  textBtnChooseColor: {
+    height: "100%",
+    textAlign: "center",
+    textAlignVertical: "center",
+    fontWeight: "800",
     color: "grey",
-    borderRadius: 5,
+  },
+  containerColor: {
+    width: "80%",
+    height: 400,
+    alignSelf: "center",
+    borderRadius: 10,
+  },
+  colorPicker: {
+    width: "100%",
+    height: "100%",
+  },
+  textColorPicker: {
+    width: "100%",
+    marginTop: 20,
+    textAlign: "center",
+    fontSize: 14,
+    fontWeight: "800",
+    color: "grey",
   },
   errorCategory: {
     width: "80%",
@@ -263,7 +313,7 @@ const styles = StyleSheet.create({
     height: 50,
     marginTop: 20,
     alignSelf: "center",
-    borderRadius: 5,
+    borderRadius: 10,
     backgroundColor: "#FF5555",
   },
   textBtnCategory: {
@@ -275,17 +325,18 @@ const styles = StyleSheet.create({
   },
   containerCategory: {
     width: "80%",
+    marginBottom: 50,
     display: "flex",
     flexDirection: "row",
     justifyContent: "flex-start",
     alignSelf: "center",
     flexWrap: "wrap",
-    rowGap: 5,
+    rowGap: 10,
     columnGap: 3,
   },
   contentCategory: {
     height: 30,
-    borderRadius: 5,
+    borderRadius: 10,
     display: "flex",
     alignItems: "center",
     justifyContent: "center",
@@ -293,7 +344,7 @@ const styles = StyleSheet.create({
   listCategory: {
     width: "100%",
     paddingHorizontal: 15,
-    borderRadius: 5,
+    borderRadius: 10,
     textAlign: "center",
     textAlignVertical: "center",
     fontSize: 11,
