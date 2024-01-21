@@ -16,7 +16,7 @@ import {
 import { Box } from "native-base";
 
 // api
-import { API } from "../../Config/api";
+import { API } from "../Config/api";
 // ------------------------------------------
 
 const Register = ({ navigation }) => {

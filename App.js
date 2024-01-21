@@ -7,7 +7,7 @@ import { StatusBar } from "expo-status-bar";
 import { NativeBaseProvider, extendTheme } from "native-base";
 
 // components
-import ContainerNavigation from "./src/Component/Pages/ContainerNavigation";
+import ContainerNavigation from "./src/Screens/ContainerNavigation";
 import { UserContextProvider } from "./src/Context/UserContext";
 // -------------------------------------------------------
 

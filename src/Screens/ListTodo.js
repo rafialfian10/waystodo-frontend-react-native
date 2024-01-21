@@ -609,6 +609,7 @@ const styles = StyleSheet.create({
     height: 30,
     padding: 0,
     textAlign: "center",
+    textAlignVertical: "center",
     fontSize: 12,
     fontWeight: "800",
     color: "white",

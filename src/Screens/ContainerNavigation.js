@@ -17,7 +17,7 @@ import DetailTodo from "./DetailTodo";
 import Profile from "./Profile";
 import AddCategory from "./AddCategory";
 import AddTodo from "./AddTodo";
-import { UserContext } from "../../Context/UserContext";
+import { UserContext } from "../Context/UserContext";
 
 // api
 import { API, setAuthToken } from "../../Config/api";

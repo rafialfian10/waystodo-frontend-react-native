@@ -3,6 +3,7 @@ import axios from "axios";
 
 // env
 import { API_HOST } from "@env";
+console.log("zzz", API_HOST);
 // --------------------------------------------------
 
 export const API = axios.create({

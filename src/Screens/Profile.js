@@ -25,11 +25,11 @@ import {
 import { Box, Image, Menu, Pressable } from "native-base";
 
 // components
-import { UserContext } from "../../Context/UserContext";
-import { GetUser } from "../Common/Hooks/getUser";
+import { UserContext } from "../Context/UserContext";
+import { GetUser } from "../Component/Common/Hooks/getUser";
 
 // api
-import { API } from "../../Config/api";
+import { API } from "../Config/api";
 
 // env
 import { PATH_FILE } from "@env";
@@ -45,10 +45,10 @@ const Profile = () => {
   // data user
   const { user, isLoading, refetchUser } = GetUser();
 
-  // state modal & new url photo & upload photo
-  const [modalVisible, setModalVisible] = useState(false);
+  // state modal & new url photo
+  const [modalProfile, setModalProfile] = useState(false);
+  const [modalPhotoProfile, setModalPhotoProfile] = useState(false);
   const [newURLPhoto, setNewURLPhoto] = useState();
-  const [uploadPhoto, setUploadPhoto] = useState();
 
   // state form
   const [form, setForm] = useState({
@@ -83,6 +83,49 @@ const Profile = () => {
       photo: updatedPhotoURL,
     }));
   }, [user]);
+
+  // handle open gallery
+  const handleOpenGallery = async () => {
+    try {
+      let result = await ImagePicker.launchImageLibraryAsync({
+        mediaTypes: ImagePicker.MediaTypeOptions.All,
+        allowsEditing: true,
+        aspect: [4, 3],
+        quality: 1,
+      });
+
+      // solve: Key "cancelled" in the image picker result is deprecated, use "canceled" instead,
+      delete result.cancelled;
+
+      if (!result.canceled) {
+        await handleUpdatePhotoProfile(result.assets[0].uri);
+      }
+    } catch (error) {
+      console.log("photo failed to select", error);
+    }
+  };
+
+  // handle open camera
+  const handleOpenCamera = async () => {
+    try {
+      await ImagePicker.requestCameraPermissionsAsync();
+      let result = await ImagePicker.launchCameraAsync({
+        cameraType: ImagePicker.CameraType.front,
+        allowsEditing: true,
+        aspect: [1, 1],
+        quality: 1,
+      });
+
+      // solve: Key "cancelled" in the image picker result is deprecated, use "canceled" instead,
+      delete result.cancelled;
+
+      if (!result.canceled) {
+        await handleUpdatePhotoProfile(result.assets[0].uri);
+      }
+    } catch (error) {
+      console.log("camera error bro", error);
+    }
+  };
 
   // handle change
   const handleChange = (data, value) => {
@@ -147,7 +190,7 @@ const Profile = () => {
         if (response?.data?.status === 200) {
           alert("Profile has been updated");
           refetchUser();
-          setModalVisible(false);
+          setModalProfile(false);
         }
       } else {
         setError(messageError);
@@ -157,47 +200,38 @@ const Profile = () => {
     }
   };
 
-  // handle upload photo
-  const handleUploadPhoto = async (id) => {
+  // handle update photo profile
+  const handleUpdatePhotoProfile = async (result) => {
     try {
-      let result = await ImagePicker.launchImageLibraryAsync({
-        mediaTypes: ImagePicker.MediaTypeOptions.All,
-        allowsEditing: true,
-        aspect: [4, 3],
-        quality: 1,
+      const config = {
+        headers: {
+          "Content-type": "multipart/form-data",
+          Authorization: "Bearer " + state?.user?.token,
+        },
+      };
+
+      const formData = new FormData();
+      formData.append("photo", {
+        uri: result,
+        type: "image/jpeg",
+        name: `${state?.user?.userName}.jpg`,
       });
 
-      // solve: Key "cancelled" in the image picker result is deprecated, use "canceled" instead,
-      delete result.cancelled;
-
-      if (!result.canceled) {
-        try {
-          const config = {
-            headers: {
-              "Content-type": "multipart/form-data",
-              Authorization: "Bearer " + state?.user?.token,
-            },
-          };
-
-          const formData = new FormData();
-          formData.append("photo", {
-            uri: result.assets[0].uri,
-            type: "image/jpeg",
-            name: `${state?.user?.userName}.jpg`,
-          });
-
-          const response = await API.patch(`/user/${id}`, formData, config);
-          if (response?.data?.status === 200) {
-            alert("Profile photo has been updated");
-            refetchUser();
-            setModalVisible(false);
-          }
-        } catch (error) {
-          console.log("photo failed to upload", error);
-        }
+      const response = await API.patch(`/user/${id}`, formData, config);
+      if (response?.data?.status === 200) {
+        alert("Profile photo has been updated");
+        refetchUser();
+        setForm({
+          user_name: "",
+          email: "",
+          phone: "",
+          photo: "",
+        });
+        setModalProfile(false);
+        setModalPhotoProfile(false);
       }
     } catch (error) {
-      console.log("photo failed to select", error);
+      console.log("photo failed to upload", error);
     }
   };
 
@@ -227,7 +261,7 @@ const Profile = () => {
               if (response?.status === 200) {
                 alert("Photo has been deleted");
                 refetchUser();
-                setModalVisible(false);
+                setModalProfile(false);
               }
             },
           },
@@ -263,7 +297,7 @@ const Profile = () => {
             >
               <TouchableOpacity
                 style={styles.btnOpenModal}
-                onPress={() => setModalVisible(true)}
+                onPress={() => setModalProfile(true)}
               >
                 <Text style={styles.textOpenModal}>Update profile</Text>
               </TouchableOpacity>
@@ -295,7 +329,7 @@ const Profile = () => {
                 )}
                 <Pressable
                   style={styles.updatePhotoIcon}
-                  onPress={() => handleUploadPhoto(user?.id)}
+                  onPress={() => setModalPhotoProfile(true)}
                 >
                   <FontAwesome
                     name="camera"
@@ -306,7 +340,6 @@ const Profile = () => {
                 </Pressable>
               </Box>
             </LinearGradient>
-
             <Box style={styles.contentDataProfile}>
               <Box style={styles.subContentDataProfile}>
                 <Text style={styles.textKey}>Name : </Text>
@@ -321,19 +354,22 @@ const Profile = () => {
                 <Text style={styles.textValue}>{user?.phone}</Text>
               </Box>
             </Box>
-
+            {/* modal profile */}
             <View style={styles.centeredView}>
               <Modal
                 animationType="slide"
                 transparent={true}
-                visible={modalVisible}
+                visible={modalProfile}
                 onRequestClose={() => {
-                  Alert.alert("Modal has been closed.");
-                  setModalVisible(!modalVisible);
+                  setModalProfile(!modalProfile);
                 }}
               >
-                <View style={styles.centeredView}>
-                  <View style={styles.modalView}>
+                <TouchableOpacity
+                  style={styles.centeredView}
+                  activeOpacity={1}
+                  onPressOut={() => setModalProfile(false)}
+                >
+                  <View style={styles.modalViewProfile}>
                     <Box style={styles.contentInputProfile}>
                       <TextInput
                         style={styles.textInputProfile}
@@ -412,13 +448,54 @@ const Profile = () => {
 
                       <TouchableOpacity
                         style={styles.btnCancel}
-                        onPress={() => setModalVisible(!modalVisible)}
+                        onPress={() => setModalProfile(false)}
                       >
                         <Text style={styles.textBtnUpdateClose}>Cancel</Text>
                       </TouchableOpacity>
                     </Box>
                   </View>
-                </View>
+                </TouchableOpacity>
+              </Modal>
+            </View>
+            {/* modal photo profile */}
+            <View style={styles.centeredView}>
+              <Modal
+                animationType="slide"
+                transparent={true}
+                visible={modalPhotoProfile}
+                oonRequestClose={() => {
+                  setModalPhotoProfile(!modalPhotoProfile);
+                }}
+              >
+                <TouchableOpacity
+                  style={styles.centeredView}
+                  activeOpacity={1}
+                  onPressOut={() => setModalPhotoProfile(false)}
+                >
+                  <View style={styles.modalViewPhotoProfile}>
+                    <TouchableOpacity
+                      style={styles.btnModalPhotoProfile}
+                      onPress={handleOpenCamera}
+                    >
+                      <FontAwesome name="camera" size={25} color="grey" />
+                      <Text style={styles.textModalPhotoProfile}>Camera</Text>
+                    </TouchableOpacity>
+                    <TouchableOpacity
+                      style={styles.btnModalPhotoProfile}
+                      onPress={handleOpenGallery}
+                    >
+                      <FontAwesome name="image" size={25} color="grey" />
+                      <Text style={styles.textModalPhotoProfile}>Gallery</Text>
+                    </TouchableOpacity>
+                    <TouchableOpacity
+                      style={styles.btnModalPhotoProfile}
+                      onPress={() => handleDeletePhoto(user?.id)}
+                    >
+                      <FontAwesome name="trash" size={25} color="red" />
+                      <Text style={styles.textModalPhotoProfile}>Remove</Text>
+                    </TouchableOpacity>
+                  </View>
+                </TouchableOpacity>
               </Modal>
             </View>
           </Box>
@@ -554,7 +631,7 @@ const styles = StyleSheet.create({
     alignItems: "center",
     alignSelf: "center",
   },
-  modalView: {
+  modalViewProfile: {
     width: "100%",
     margin: 20,
     backgroundColor: "#FFFFFF",
@@ -622,19 +699,6 @@ const styles = StyleSheet.create({
     width: "100%",
     marginTop: 20,
   },
-  choosePhotoButton: {
-    width: "100%",
-    backgroundColor: "#47A9DA",
-    borderRadius: 10,
-    padding: 10,
-    alignItems: "center",
-    marginTop: 10,
-    marginBottom: 20,
-  },
-  choosePhotoText: {
-    color: "white",
-    fontWeight: "bold",
-  },
   selectedPhoto: {
     width: "95%",
     height: 200,
@@ -645,6 +709,32 @@ const styles = StyleSheet.create({
     top: -10,
     right: -5,
     zIndex: 1,
+  },
+  modalViewPhotoProfile: {
+    width: "100%",
+    margin: 20,
+    flexDirection: "row",
+    justifyContent: "center",
+    gap: 30,
+    padding: 35,
+    borderRadius: 20,
+    backgroundColor: "#FFFFFF",
+    shadowColor: "#000",
+    shadowOffset: {
+      width: 0,
+      height: 2,
+    },
+    shadowOpacity: 0.25,
+    shadowRadius: 4,
+    elevation: 5,
+  },
+  btnModalPhotoProfile: {
+    alignItems: "center",
+  },
+  textModalPhotoProfile: {
+    marginTop: 10,
+    fontWeight: "500",
+    color: "grey",
   },
 });
 
